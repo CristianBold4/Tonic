@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
     if (strcmp(project, "BuildOracle") == 0) {
         if (argc != 7) {
             std::cerr << "Usage: BuildOracle (dataset_path) (delimiter) (skip)"
-                         " (type = [Exact, MinDeg]) (percentage_retain) (output_path)\n";
+                         " (type = [Exact, MinDeg]) (retaining_fraction) (output_path)\n";
             return 0;
         } else {
             std::string dataset_path(argv[1]);
