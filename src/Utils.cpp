@@ -75,10 +75,13 @@ void Utils::preprocess_data(const std::string& dataset_filepath, const char* del
         t = 0;
         while (std::getline(file, line)) {
             nline++;
+            if (nline % 2000000 == 0) {
+                std::cout << "Processed " << nline << " edges...\n";
+            }
             if (nline <= skip) continue;
 
             std::stringstream ss(line);
-            char del;
+            char del = ' ';
             if (strcmp(delimiter, "\t") == 0) {
                 del = '\t';
             }
@@ -118,10 +121,6 @@ void Utils::preprocess_data(const std::string& dataset_filepath, const char* del
                 }
             }
 
-            if (nline % 2000000 == 0) {
-                std::cout << "Processed " << nline << " edges...\n";
-            }
-
         }
 
         // -- eof
@@ -153,7 +152,7 @@ void Utils::preprocess_data(const std::string& dataset_filepath, const char* del
 
 }
 
-void Utils::build_oracle(const std::string &dataset_filepath, const char delimiter, int skip,
+void Utils::build_oracle(const std::string &dataset_filepath,
                          const std::string &type, const std::string &output_path, double perc_retain) {
 
     std::cout << "Building " << type << " Oracle...\n";
@@ -172,6 +171,7 @@ void Utils::build_oracle(const std::string &dataset_filepath, const char delimit
     ankerl::unordered_dense::set<int> min_neighbors;
 
     int total_T = 0;
+    int skip = 0;
 
     if (file.is_open()) {
 
@@ -254,7 +254,7 @@ void Utils::build_oracle(const std::string &dataset_filepath, const char delimit
 
         std::ofstream out_file(output_path);
         std::cout << "Total Triangles -> " << total_T << "\n";
-        std::cout << "Oracle Size = " << sorted_oracle.size() << "\n";
+        std::cout << "Retained Oracle Size = " << stop_idx << "\n";
 
         int cnt = 0;
         for (auto elem: sorted_oracle) {
