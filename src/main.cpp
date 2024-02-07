@@ -111,6 +111,11 @@ int main(int argc, char **argv) {
     long memory_budget = atol(argv[2]);
     double alpha = atof(argv[3]);
     double beta = atof(argv[4]);
+    // -- assert alpha and beta in (0, 1)
+    if (alpha <= 0 || alpha >= 1 || beta <= 0 || beta >=1) {
+        std::cerr << "Error: Alpha and Beta must be in (0, 1)\n";
+        return 0;
+    }
 
     srand(random_seed);
     std::string filename(argv[5]);
