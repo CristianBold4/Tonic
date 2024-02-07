@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.16)
 
+
+set(UNORDERED_DENSE_LIB "${CMAKE_CURRENT_SOURCE_DIR}/unordered_dense/build/unordered_dense_install")
+list(APPEND CMAKE_PREFIX_PATH "${UNORDERED_DENSE_LIB}")
+
 find_package(unordered_dense CONFIG REQUIRED)
 
 project(Tonic)
@@ -13,7 +17,6 @@ endif()
 set(CMAKE_CXX_FLAGS "-O3 -Wall")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_STANDARD 17)
-
 add_executable(Tonic src/main.cpp
         src/GraphStream.cpp
         include/GraphStream.h
