@@ -1,7 +1,3 @@
-//
-// Created by Cristian Boldrin on 05/10/23.
-//
-
 #include "GraphStream.h"
 #include <sstream>
 #include <iostream>

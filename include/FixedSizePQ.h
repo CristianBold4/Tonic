@@ -1,7 +1,3 @@
-//
-// Created by Cristian Boldrin on 23/11/23.
-//
-
 #ifndef FIXEDSIZEPQ_H
 #define FIXEDSIZEPQ_H
 

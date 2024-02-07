@@ -1,7 +1,3 @@
-//
-// Created by Cristian Boldrin on 05/10/23.
-//
-
 #include "WRPSampling.h"
 #include "FixedSizePQ.h"
 #include <algorithm>

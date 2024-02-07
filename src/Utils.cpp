@@ -1,7 +1,3 @@
-//
-// Created by Cristian Boldrin on 13/10/23.
-//
-
 #include "Utils.h"
 #include "WRPSampling.h"
 

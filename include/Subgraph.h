@@ -1,7 +1,3 @@
-//
-// Created by Cristian Boldrin on 05/10/23.
-//
-
 #ifndef TRIANGLESWITHPREDICTIONS_SUBGRAPH_H
 #define TRIANGLESWITHPREDICTIONS_SUBGRAPH_H
 
