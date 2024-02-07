@@ -134,8 +134,8 @@ int main(int argc, char **argv) {
     std::string out_path(argv[7]);
 
     // -- output_files
-    std::ofstream outFile(out_path + "_global_count.txt", std::ios::app);
-    std::ofstream outFile_local(out_path + "_local_counts.txt", std::ios::app);
+    std::ofstream outFile(out_path + "_global_count.txt");
+    std::ofstream outFile_local(out_path + "_local_counts.txt");
 
     // -- read oracle
     ankerl::unordered_dense::map<long, int> heaviness_oracle;
@@ -155,10 +155,11 @@ int main(int argc, char **argv) {
 
     // -- write results
     double global_count = WRP_algo.get_global_triangles();
-    outFile << std::fixed << global_count << "," << time << "\n";
+    outFile << "Global Count: " << std::fixed << global_count << "\nTime Elapsed: " << time << "(s)\n";
 
     ankerl::unordered_dense::map<int, double> local_triangles;
     WRP_algo.get_local_triangles_map(local_triangles);
+    outFile_local << "Local Triangles Counts:\n";
     for (auto &node_to_triangle: local_triangles) {
         outFile_local << node_to_triangle.first << "\t" << std::fixed << node_to_triangle.second << "\n";
     }
