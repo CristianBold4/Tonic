@@ -5,7 +5,10 @@ Code is deployed in *C++ 17* under *gcc 9.4.0* compiler. Additionally, *CMake 3.
 
 1. Compile the code
    
-   `bash compile.sh` 
+   `bash compile.sh`
+
+   We provide some examples of datasets and oracles inside the respective folders, so that you can skip directly to step (4) after having compiled the sources.
+   
 3. Preprocess the raw dataset
    
    `build/DataPreprocessing (dataset_path) (delimiter) (skip) (oiutput_path)`
@@ -17,8 +20,6 @@ Code is deployed in *C++ 17* under *gcc 9.4.0* compiler. Additionally, *CMake 3.
 8. Run *Tonic* Algorithm: 
 
     `build/Tonic (random_seed) (memory_budget) (alpha) (beta) (preprocessed_dataset_path) (oracle_path) (output_path)`
-
-We provide some examples of datasets and oracles inside the respective folders, so that you can skip directly to step (4) after having compiled the sources.
 
 
 ## Datasets
