@@ -65,12 +65,12 @@ void Utils::preprocess_data(const std::string& dataset_filepath, const char* del
     int u, v, t, du, dv, n_min, n_max;
     ankerl::unordered_dense::set<int> min_neighbors;
 
-    int total_T = 0;
+    long total_T = 0;
     if (file.is_open()) {
 
-        int nline = 0;
-        int num_nodes = 0;
-        int num_edges = 0;
+        long nline = 0;
+        long num_nodes = 0;
+        long num_edges = 0;
 
         t = 0;
         while (std::getline(file, line)) {
@@ -81,7 +81,9 @@ void Utils::preprocess_data(const std::string& dataset_filepath, const char* del
             char del;
             if (strcmp(delimiter, "\t") == 0) {
                 del = '\t';
-            }
+            } else {
+		del = ' ';
+	    }
             std::getline(ss, su, del);
             std::getline(ss, sv, del);
 
@@ -118,15 +120,15 @@ void Utils::preprocess_data(const std::string& dataset_filepath, const char* del
                 }
             }
 
-            if (nline % 2000000 == 0) {
-                std::cout << "Processed " << nline << " edges...\n";
+            if (nline % 5000000 == 0) {
+                std::cout << "Processed " << nline << " edges || Triangles Counted = " << total_T << "...\n";
             }
 
         }
 
         // -- eof
-        num_nodes = (int) graph_stream.size();
-        printf("Preprocessed dataset with n = %d, m = %d, T = %d\n", num_nodes, num_edges, total_T);
+        num_nodes = (long) graph_stream.size();
+        printf("Preprocessed dataset with n = %ld, m = %ld, T = %ld\n", num_nodes, num_edges, total_T);
         std::cout << "Sorting edge map...\n";
         std::vector<std::pair<Edge, int>> ordered_edge_stream;
         for (auto elem : edge_stream) {
@@ -171,11 +173,11 @@ void Utils::build_oracle(const std::string &dataset_filepath, const char delimit
     int u, v, t, du, dv, n_min, n_max;
     ankerl::unordered_dense::set<int> min_neighbors;
 
-    int total_T = 0;
+    long total_T = 0;
 
     if (file.is_open()) {
 
-        int nline = 0;
+        long nline = 0;
         while (std::getline(file, line)) {
 
             std::stringstream ss(line);
