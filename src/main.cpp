@@ -36,24 +36,15 @@ WRPSampling wrp_sampling(const std::string &filename, const char &delimiter, int
 
 }
 
-/* Use if POSIX basename() is unavailable */
+// -- used to retrieve absolute name of the executed program
 char *base_name(char *s)
 {
     char *start;
-
-    /* Find the last '/', and move past it if there is one.  Otherwise return
-       a copy of the whole string. */
-    /* strrchr() finds the last place where the given character is in a given
-       string.  Returns NULL if not found. */
     if ((start = strrchr(s, '/')) == NULL) {
         start = s;
     } else {
         ++start;
     }
-    /* If you don't want to do anything interesting with the returned value,
-       i.e., if you just want to print it for example, you can just return
-       'start' here (and then you don't need dup_str(), or to free
-       the result). */
     return start;
 }
 
@@ -86,23 +77,21 @@ int main(int argc, char **argv) {
     }
 
     if (strcmp(project, "BuildOracle") == 0) {
-        if (argc != 7) {
-            std::cerr << "Usage: BuildOracle (dataset_path) (delimiter) (skip)"
+        if (argc != 5) {
+            std::cerr << "Usage: BuildOracle (dataset_path)"
                          " (type = [Exact, MinDeg]) (retaining_fraction) (output_path)\n";
             return 0;
         } else {
             std::string dataset_path(argv[1]);
-            delimiter = *(argv[2]);
-            skip = atoi(argv[3]);
-            std::string type_oracle(argv[4]);
-            double perc_retain = atof(argv[5]);
-            std::string output_path(argv[6]);
+            std::string type_oracle(argv[2]);
+            double perc_retain = atof(argv[3]);
+            std::string output_path(argv[4]);
             if (strcmp(type_oracle.c_str(), "Exact") != 0 and strcmp(type_oracle.c_str(), "MinDeg") != 0) {
                 std::cerr << "Build Oracle - Error! Type of Oracle must be Exact or MinDeg.\n";
                 return 0;
             }
             auto start = std::chrono::high_resolution_clock::now();
-            Utils::build_oracle(dataset_path, delimiter, skip, type_oracle, output_path, perc_retain);
+            Utils::build_oracle(dataset_path, type_oracle, output_path, perc_retain);
             auto stop = std::chrono::high_resolution_clock::now();
             double time = (double) ((std::chrono::duration_cast<std::chrono::milliseconds>(stop - start)).count()) / 1000;
             std::cout << "Oracle " << type_oracle << " successfully built in time: " << time << " s\n";

@@ -31,7 +31,7 @@ public:
     static void read_oracle(std::string& oracle_filename, const char delimiter, int skip,
                              ankerl::unordered_dense::map<long, int>& oracle);
 
-    static void build_oracle(const std::string& dataset_filepath, const char delimiter, int skip,
+    static void build_oracle(const std::string& dataset_filepath,
                             const std::string &type, const std::string &output_path, double perc_retain);
 
     static void sort_edgemap(const ankerl::unordered_dense::map<Edge, int, hash_edge> &map, std::vector<std::pair<Edge, int>> &edge_map);
