@@ -81,12 +81,16 @@ void Utils::preprocess_data(const std::string& dataset_filepath, const char* del
             if (nline <= skip) continue;
 
             std::stringstream ss(line);
-            char del = ' ';
-            if (strcmp(delimiter, "\t") == 0) {
+            char del = '\t';
+            /*
+	    if (strcmp(delimiter, "\t") == 0) {
                 del = '\t';
+		std::cout << "et al.\n";
             } else {
+		std::cout << "del space\n";
 		del = ' ';
 	    }
+	    */
             std::getline(ss, su, del);
             std::getline(ss, sv, del);
 

@@ -6,7 +6,7 @@
 #include <queue>
 #include <fstream>
 
-#define CHUNK_SIZE 500000
+#define CHUNK_SIZE 2000000
 
 typedef struct EdgeStream {
     int u;

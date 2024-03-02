@@ -13,6 +13,7 @@ Subgraph::~Subgraph() {
 
 bool Subgraph::add_edge(const int u, const int v, char label) {
 
+    /*	
     auto u_it = subgraph_.find(u);
     if (u_it != subgraph_.end()) {
         // -- u is already in sg
@@ -32,7 +33,7 @@ bool Subgraph::add_edge(const int u, const int v, char label) {
             return false;
         }
     }
-
+    */
     // -- edge not present in the subgraph
     num_edges_++;
     bool is_det = (label != 'L');
@@ -47,6 +48,7 @@ bool Subgraph::add_edge(const int u, const int v, char label) {
 
 bool Subgraph::remove_edge(const int u, const int v) {
 
+    /*
     auto u_it = subgraph_.find(u);
     auto v_it = subgraph_.find(v);
     if (u_it != subgraph_.end() && v_it != subgraph_.end()){
@@ -60,6 +62,10 @@ bool Subgraph::remove_edge(const int u, const int v) {
         // -- edge is not present in sg
         return false;
     }
+    */
+    subgraph_[u].erase(v);
+    subgraph_[v].erase(u);
+    return true;
 
 }
 

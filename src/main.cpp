@@ -123,8 +123,8 @@ int main(int argc, char **argv) {
     std::string out_path(argv[7]);
 
     // -- output_files
-    std::ofstream outFile(out_path + "_global_count.txt");
-    std::ofstream outFile_local(out_path + "_local_counts.txt");
+    std::ofstream outFile(out_path + "_global_count.txt", std::ios::app);
+    std::ofstream outFile_local(out_path + "_local_counts.txt", std::ios::app);
 
     // -- read oracle
     ankerl::unordered_dense::map<long, int> heaviness_oracle;
