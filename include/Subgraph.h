@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include "ankerl/unordered_dense.h"
+#include <algorithm>
 
 #define Edge std::pair<int, int>
 
@@ -18,7 +19,7 @@ public:
 
     void clear();
 
-    void return_neighbors(const int u, std::vector<std::pair<int, bool>> &u_neighs) const;
+    ankerl::unordered_dense::map<int, bool>* return_neighbors(const int u);
 
     void return_edges(std::vector<Edge> &subgraph_edges) const;
 
@@ -46,4 +47,4 @@ private:
 
 };
 
-#endif //TRIANGLESWITHPREDICTIONS_SUBGRAPH_H
+#endif

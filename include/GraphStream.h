@@ -5,6 +5,8 @@
 #include <vector>
 #include <queue>
 #include <fstream>
+#include <sstream>
+#include <iostream>
 
 #define CHUNK_SIZE 2000000
 
@@ -40,4 +42,4 @@ private:
 };
 
 
-#endif //TRIANGLESWITHPREDICTIONS_GRAPHSTREAM_H
+#endif

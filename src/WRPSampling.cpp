@@ -1,16 +1,9 @@
 #include "WRPSampling.h"
-#include "FixedSizePQ.h"
-#include <algorithm>
-#include <random>
-#include <iomanip>
-#include <iostream>
-#include <cassert>
-#include <sstream>
 
 
 WRPSampling::WRPSampling(long k, int random_seed, double alpha, double beta,
-                         const ankerl::unordered_dense::map<long, int> &oracle) : k_(k), alpha_(alpha),
-                                                                                             beta_(beta),
+                         const ankerl::unordered_dense::map<long, int> &oracle) : alpha_(alpha), beta_(beta),
+                                                                                             k_(k),
                                                                                              WR_size_((long) (k *
                                                                                                               alpha)),
                                                                                              H_size_((long) (
@@ -85,12 +78,13 @@ void WRPSampling::count_triangles(const int source, const int dest) {
     int u = (du <= dv ? source : dest);
     int v = (du <= dv ? dest : source);
 
-    std::vector<std::pair<int, bool>> min_neighs;
-    subgraph_.return_neighbors(u, min_neighs);
+    ankerl::unordered_dense::map<int, bool>* min_neighs = subgraph_.return_neighbors(u);
+
+    if (min_neighs == nullptr) return;
 
     double cumulative_count = 0.0;
 
-    for (const auto &u_neighs: min_neighs) {
+    for (const auto &u_neighs: *min_neighs) {
         int w = u_neighs.first;
 
         double increment_T = 1.0;

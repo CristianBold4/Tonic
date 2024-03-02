@@ -1,5 +1,4 @@
-#include "Subgraph.h"
-#include <algorithm>
+#include "Subgraph.h"\
 
 Subgraph::Subgraph(long k) : num_edges_(0) {
     subgraph_ = ankerl::unordered_dense::map<int, ankerl::unordered_dense::map<int, bool>>(k);
@@ -74,14 +73,14 @@ void Subgraph::clear() {
     num_edges_ = 0;
 }
 
-void Subgraph::return_neighbors(const int u, std::vector<std::pair<int, bool>> &u_neighs) const {
+ankerl::unordered_dense::map<int, bool>* Subgraph::return_neighbors(const int u) {
 
     auto u_it = subgraph_.find(u);
-    if (u_it != subgraph_.end()) {
-        for (const auto &neigh: u_it->second) {
-            u_neighs.emplace_back(neigh);
-        }
-    }
+    if (u_it != subgraph_.end())
+        return &u_it->second;
+    else
+        return nullptr;
+
 }
 
 void Subgraph::return_edges(std::vector<Edge > &subgraph_edges) const {
