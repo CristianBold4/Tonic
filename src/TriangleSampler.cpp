@@ -16,7 +16,7 @@ TriangleSampler::TriangleSampler(int random_seed, long k, double alpha, double b
     num_edges_ = 0;
     printf("WR size = %ld, H size = %ld, SL size = %ld\n", WR_size_, H_size_, SL_size_);
     subgraph_ = emhash5::HashMap<int, emhash5::HashMap<int, bool>>();
-    gen_ = std::mt19937_64(random_seed);
+    gen_ = std::mt19937(random_seed);
     dis_ = std::uniform_real_distribution<double>(0.0, 1.0);
     dis_int_ = std::uniform_int_distribution<int>(0, (int)SL_size_ - 1);
 }
@@ -261,7 +261,7 @@ bool TriangleSampler::sample_edge(const int src, const int dst) {
                 subgraph_[uv_sample.first][uv_sample.second] = false;
                 subgraph_[uv_sample.second][uv_sample.first] = false;
                 // -- evict edge uniformly at random
-                int replace_idx = dis_int_(gen_);
+                int replace_idx = (int) (rand() % SL_size_);
                 edge uv_replace = light_edges_sample_[replace_idx];
                 remove_edge(uv_replace.first, uv_replace.second);
                 light_edges_sample_[replace_idx] = uv_sample;

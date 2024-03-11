@@ -44,7 +44,7 @@ private:
     FixedSizePQ<heavy_edge, heavy_edge_cmp> heavy_edges_;
     edge* light_edges_sample_;
 
-    std::mt19937_64 gen_;
+    std::mt19937 gen_;
     std::uniform_real_distribution<double> dis_;
     std::uniform_int_distribution<int> dis_int_;
 
