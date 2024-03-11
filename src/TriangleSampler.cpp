@@ -58,7 +58,9 @@ int TriangleSampler::get_heaviness(const int u, const int v) {
 }
 
 inline double TriangleSampler::next_double() {
-    return dis_(gen_);
+    int a = gen_() >> 5;
+    int b = gen_() >> 6;
+    return (a * 67108864.0 + b) / 9007199254740992.0;
 }
 
 int TriangleSampler::get_num_nodes() const {
