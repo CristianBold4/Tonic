@@ -19,4 +19,3 @@ add_executable(Tonic src/main.cpp
         include/HeavyEdgesPQ.h)
 
 target_include_directories(Tonic PRIVATE include)
-
