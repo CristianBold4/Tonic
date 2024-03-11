@@ -11,7 +11,7 @@ unsigned long long Utils::edge_to_id(const int u, const int v) {
            static_cast<unsigned long long>(nv);
 }
 
-void Utils::read_node_oracle(std::string &oracle_filename, const char delimiter, int skip,
+bool Utils::read_node_oracle(std::string &oracle_filename, const char delimiter, int skip,
                              emhash5::HashMap<int, int> &node_oracle) {
 
     std::ifstream file(oracle_filename);
@@ -31,11 +31,15 @@ void Utils::read_node_oracle(std::string &oracle_filename, const char delimiter,
             i++;
         }
         file.close();
-    } else
-            std::cerr << "Error! Unable to open file " << oracle_filename << "\n";
+        return true;
+    } else {
+        std::cerr << "Error! Unable to open file " << oracle_filename << "\n";
+        return false;
+    }
+
 }
 
-void Utils::read_edge_oracle(std::string &oracle_filename, const char delimiter, int skip,
+bool Utils::read_edge_oracle(std::string &oracle_filename, const char delimiter, int skip,
                              emhash5::HashMap<long, int> &edge_id_oracle) {
 
     std::ifstream file(oracle_filename);
@@ -57,7 +61,10 @@ void Utils::read_edge_oracle(std::string &oracle_filename, const char delimiter,
             i++;
         }
         file.close();
-    } else
+        return true;
+    } else {
         std::cerr << "Error! Unable to open file " << oracle_filename << "\n";
+        return false;
+    }
 
 }

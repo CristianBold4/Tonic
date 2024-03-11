@@ -90,26 +90,8 @@ void TriangleSampler::add_edge(const int u, const int v, bool det) {
 
 void TriangleSampler::remove_edge(const int u, const int v) {
     num_edges_--;
-    auto u_it = subgraph_.find(u);
-    if (u_it != subgraph_.end()) {
-        auto uv_it = u_it->second.find(v);
-        if (uv_it != u_it->second.end()) {
-            u_it->second.erase(uv_it);
-            if (u_it->second.empty()) {
-                subgraph_.erase(u_it);
-            }
-        }
-        auto v_it = subgraph_.find(v);
-        if (v_it != subgraph_.end()) {
-            auto vu_it = v_it->second.find(u);
-            if (vu_it != v_it->second.end()) {
-                v_it->second.erase(vu_it);
-                if (v_it->second.empty()) {
-                    subgraph_.erase(v_it);
-                }
-            }
-        }
-    }
+    subgraph_[u].erase(v);
+    subgraph_[v].erase(u);
 }
 
 inline unsigned long long TriangleSampler::get_edges_processed() const {

@@ -14,7 +14,8 @@ void run_tonic_algo(std::string &dataset_path, TriangleSampler &algo) {
     int u, v, t;
 
     if (file.is_open()) {
-        while (std::getline(file, line)) {
+        while (true) {
+            if (!std::getline(file, line)) break;
             std::istringstream iss(line);
             std::string token;
             std::getline(iss, token, ' ');
@@ -66,22 +67,22 @@ int main(int argc, char **argv) {
 
     if (oracle_type == "nodes") {
         emhash5::HashMap<int, int> node_oracle;
-        Utils::read_node_oracle(oracle_path, ' ', 0, node_oracle);
+        if (!Utils::read_node_oracle(oracle_path, ' ', 0, node_oracle)) return 1;
         time = (double) ((std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::high_resolution_clock::now() - start)).count()) / 1000;
         printf("Node Oracle successfully read in time %.3f! Size of the oracle = %d nodes\n",
                time, node_oracle.size());
-        size_oracle = node_oracle.size();
+        size_oracle = (int) node_oracle.size();
         tonic_algo.set_node_oracle(node_oracle);
     } else if (oracle_type == "edges") {
         edge_oracle_flag = true;
         emhash5::HashMap<long, int> edge_oracle;
-        Utils::read_edge_oracle(oracle_path, ' ', 0, edge_oracle);
+        if (!Utils::read_edge_oracle(oracle_path, ' ', 0, edge_oracle)) return 1;
         time = (double) ((std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::high_resolution_clock::now() - start)).count()) / 1000;
         printf("Edge Oracle successfully read in time %.3f! Size of the oracle = %d edges\n",
                time, edge_oracle.size());
-        size_oracle = edge_oracle.size();
+        size_oracle = (int) edge_oracle.size();
         tonic_algo.set_edge_oracle(edge_oracle);
     } else {
         std::cerr << "Error! Oracle type must be nodes or edges\n";
