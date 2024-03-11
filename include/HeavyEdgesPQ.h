@@ -28,22 +28,11 @@ public:
     inline void enlarge_max_size(size_t new_max_size) { max_size = new_max_size; }
 
     void push(const T& elem) {
-        if (heap_.size() < max_size) {
-            heap_.push_back(elem);
-            std::push_heap(heap_.begin(), heap_.end(), comp);
-        } else {
-            if (comp(elem, heap_.front())) {
-                std::pop_heap(heap_.begin(), heap_.end(), comp);
-                heap_.pop_back();
-                heap_.push_back(elem);
-                std::push_heap(heap_.begin(), heap_.end(), comp);
-            }
-        }
+        heap_.push_back(elem);
+        std::push_heap(heap_.begin(), heap_.end(), comp);
     }
 
     void pop() {
-        if (heap_.empty())
-            return;
         std::pop_heap(heap_.begin(), heap_.end(), comp);
         heap_.pop_back();
     }
