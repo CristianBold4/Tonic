@@ -59,12 +59,26 @@ inline double TriangleSampler::next_double() {
     return dis_(gen_);
 }
 
-int TriangleSampler::get_nodes() const {
+int TriangleSampler::get_num_nodes() const {
     return (int) subgraph_.size();
 }
 
-int TriangleSampler::get_edges() const {
+int TriangleSampler::get_num_edges() const {
     return num_edges_;
+}
+
+void TriangleSampler::get_nodes(std::vector<int> &nodes) const {
+    nodes.clear();
+    for (const auto &it: subgraph_) {
+        nodes.push_back(it.first);
+    }
+}
+
+void TriangleSampler::get_local_nodes(std::vector<int> &nodes) const {
+    nodes.clear();
+    for (const auto &it: local_triangles_cnt_) {
+        nodes.push_back(it.first);
+    }
 }
 
 void TriangleSampler::add_edge(const int u, const int v, bool det) {
@@ -114,11 +128,6 @@ double TriangleSampler::get_local_triangles(const int u) const {
         return 0.0;
     }
 }
-
-emhash5::HashMap<int, double> TriangleSampler::get_local_counts() const {
-    return local_triangles_cnt_;
-}
-
 
 void TriangleSampler::count_triangles(const int src, const int dst) {
     emhash5::HashMap<int, bool> *u_neighs, *v_neighs;

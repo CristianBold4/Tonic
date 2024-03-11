@@ -14,7 +14,7 @@ void run_tonic_algo(std::string &dataset_path, TriangleSampler &algo) {
     int u, v, t;
 
     if (file.is_open()) {
-        while(std::getline(file, line)) {
+        while (std::getline(file, line)) {
             std::istringstream iss(line);
             std::string token;
             std::getline(iss, token, ' ');
@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
     std::chrono::time_point start = std::chrono::high_resolution_clock::now();
     double time;
     bool edge_oracle_flag = false;
-    TriangleSampler tonic_algo (random_seed, memory_budget, alpha, beta);
+    TriangleSampler tonic_algo(random_seed, memory_budget, alpha, beta);
     int size_oracle;
 
     if (oracle_type == "nodes") {
@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
                 std::chrono::high_resolution_clock::now() - start)).count()) / 1000;
         printf("Node Oracle successfully read in time %.3f! Size of the oracle = %d nodes\n",
                time, node_oracle.size());
-	size_oracle = node_oracle.size();
+        size_oracle = node_oracle.size();
         tonic_algo.set_node_oracle(node_oracle);
     } else if (oracle_type == "edges") {
         edge_oracle_flag = true;
@@ -80,8 +80,8 @@ int main(int argc, char **argv) {
         time = (double) ((std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::high_resolution_clock::now() - start)).count()) / 1000;
         printf("Edge Oracle successfully read in time %.3f! Size of the oracle = %d edges\n",
-                time, edge_oracle.size());
-	size_oracle = edge_oracle.size();
+               time, edge_oracle.size());
+        size_oracle = edge_oracle.size();
         tonic_algo.set_edge_oracle(edge_oracle);
     } else {
         std::cerr << "Error! Oracle type must be nodes or edges\n";
@@ -94,17 +94,37 @@ int main(int argc, char **argv) {
             std::chrono::high_resolution_clock::now() - start)).count()) / 1000;
 
     // -- print results
-    printf("Tonic Algo successfully run in time %.3f! Estimated count T = %f\n", time, tonic_algo.get_global_triangles());
+    printf("Tonic Algo successfully run in time %.3f! Estimated count T = %f\n", time,
+           tonic_algo.get_global_triangles());
     // -- write results
-    std::ofstream outFile(output_path + "_global_count.txt", std::ios::app);
-    if (edge_oracle_flag)
-        outFile << "Tonic Algo with Edge Oracle: " << oracle_path << " of size: " << size_oracle << ", Memory Budget = " << memory_budget << "\n";
-    else
-        outFile << "Tonic Algo with Node Oracle: " << oracle_path << " of size: " << size_oracle << ", Memory Budget = " << memory_budget << "\n";
+    // -- global estimates
+    std::ofstream out_file(output_path + "_global_count.txt", std::ios::app);
+    // -- local estimates
+    std::ofstream out_file_local(output_path + "_local_count.txt", std::ios::app);
+    if (edge_oracle_flag) {
+        out_file << "Tonic Algo with Edge Oracle: " << oracle_path << " of size: " << size_oracle
+                 << ", Memory Budget = " << memory_budget << "\n";
+        out_file_local << "Tonic Algo with Edge Oracle: " << oracle_path << " of size: " << size_oracle
+                       << ", Memory Budget = " << memory_budget << "\n";
+    } else {
+        out_file << "Tonic Algo with Node Oracle: " << oracle_path << " of size: " << size_oracle
+                 << ", Memory Budget = " << memory_budget << "\n";
+        out_file_local << "Tonic Algo with Node Oracle: " << oracle_path << " of size: " << size_oracle
+                       << ", Memory Budget = "
+                       << memory_budget << "\n";
+    }
 
-    outFile << std::fixed << "Estimated Triangles = " << tonic_algo.get_global_triangles() << "\n" <<
-            "Time = " << time << " s\n";
-    outFile.close();
+    out_file << std::fixed << "Estimated Triangles = " << tonic_algo.get_global_triangles() << "\n" <<
+             "Time = " << time << " s\n";
+    out_file.close();
+
+    std::vector<int> nodes;
+    tonic_algo.get_local_nodes(nodes);
+    for (int u : nodes) {
+        double count = tonic_algo.get_local_triangles(u);
+        out_file_local << u << " " << std::fixed << count << "\n";
+    }
+    out_file_local.close();
 
     return 0;
 

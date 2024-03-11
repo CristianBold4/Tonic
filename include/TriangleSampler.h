@@ -91,15 +91,17 @@ public:
 
     void process_edge(const int u, const int v);
 
-    int get_nodes() const;
+    int get_num_nodes() const;
 
-    int get_edges() const;
+    int get_num_edges() const;
 
     double get_local_triangles(const int u) const;
 
-    emhash5::HashMap<int, double> get_local_counts() const;
+    void get_nodes(std::vector<int> &nodes) const;
 
     double get_global_triangles() const;
+
+    void get_local_nodes(std::vector<int> &nodes) const;
 
     inline unsigned long long get_edges_processed() const;
 
