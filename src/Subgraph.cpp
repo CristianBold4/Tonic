@@ -62,8 +62,17 @@ bool Subgraph::remove_edge(const int u, const int v) {
         return false;
     }
     */
-    subgraph_[u].erase(v);
-    subgraph_[v].erase(u);
+    auto u_it = subgraph_.find(u);
+    if (u_it->second.size() > 1)
+	    u_it->second.erase(v);
+    else
+	    subgraph_.erase(u);
+    auto v_it = subgraph_.find(v);
+    if (v_it->second.size() > 1)
+	    v_it->second.erase(u);
+    else
+	    subgraph_.erase(v);
+
     return true;
 
 }
