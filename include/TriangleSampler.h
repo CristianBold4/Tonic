@@ -18,7 +18,7 @@
 // -- heavy edge comparator -> return lightest edge
 struct heavy_edge_cmp {
     bool operator()(const heavy_edge &a, const heavy_edge &b) const {
-        return a.second < b.second;
+        return a.second > b.second;
     }
 };
 
