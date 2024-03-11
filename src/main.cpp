@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
     std::string output_path(argv[8]);
 
     std::chrono::time_point start = std::chrono::high_resolution_clock::now();
-    double time;
+    double time, time_oracle;
     bool edge_oracle_flag = false;
     TriangleSampler tonic_algo(random_seed, memory_budget, alpha, beta);
     int size_oracle;
@@ -68,20 +68,20 @@ int main(int argc, char **argv) {
     if (oracle_type == "nodes") {
         emhash5::HashMap<int, int> node_oracle;
         if (!Utils::read_node_oracle(oracle_path, ' ', 0, node_oracle)) return 1;
-        time = (double) ((std::chrono::duration_cast<std::chrono::milliseconds>(
+        time_oracle = (double) ((std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::high_resolution_clock::now() - start)).count()) / 1000;
         printf("Node Oracle successfully read in time %.3f! Size of the oracle = %d nodes\n",
-               time, node_oracle.size());
+               time_oracle, node_oracle.size());
         size_oracle = (int) node_oracle.size();
         tonic_algo.set_node_oracle(node_oracle);
     } else if (oracle_type == "edges") {
         edge_oracle_flag = true;
         emhash5::HashMap<long, int> edge_oracle;
         if (!Utils::read_edge_oracle(oracle_path, ' ', 0, edge_oracle)) return 1;
-        time = (double) ((std::chrono::duration_cast<std::chrono::milliseconds>(
+        time_oracle = (double) ((std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::high_resolution_clock::now() - start)).count()) / 1000;
         printf("Edge Oracle successfully read in time %.3f! Size of the oracle = %d edges\n",
-               time, edge_oracle.size());
+               time_oracle, edge_oracle.size());
         size_oracle = (int) edge_oracle.size();
         tonic_algo.set_edge_oracle(edge_oracle);
     } else {
@@ -102,21 +102,15 @@ int main(int argc, char **argv) {
     std::ofstream out_file(output_path + "_global_count.txt", std::ios::app);
     // -- local estimates
     std::ofstream out_file_local(output_path + "_local_count.txt", std::ios::app);
-    if (edge_oracle_flag) {
-        out_file << "Tonic Algo with Edge Oracle: " << oracle_path << " of size: " << size_oracle
-                 << ", Memory Budget = " << memory_budget << "\n";
-        out_file_local << "Tonic Algo with Edge Oracle: " << oracle_path << " of size: " << size_oracle
-                       << ", Memory Budget = " << memory_budget << "\n";
-    } else {
-        out_file << "Tonic Algo with Node Oracle: " << oracle_path << " of size: " << size_oracle
-                 << ", Memory Budget = " << memory_budget << "\n";
-        out_file_local << "Tonic Algo with Node Oracle: " << oracle_path << " of size: " << size_oracle
-                       << ", Memory Budget = "
-                       << memory_budget << "\n";
-    }
+    std::string oracle_type_str = edge_oracle_flag ? "Edge Oracle" : "Node Oracle";
+    out_file << "Tonic Algo with " << oracle_type_str << ": " << oracle_path << "\nOracle Size: " << size_oracle
+             << "\nOracle Read Time: " << time_oracle << " s\nMemory Budget = " << memory_budget << "\n";
+    out_file_local << "Tonic Algo with " << oracle_type_str << ": " << oracle_path << "\nOracle Size: " << size_oracle
+             << "\n Oracle Read Time: " << time_oracle << "s \nMemory Budget = " << memory_budget << "\n";
+
 
     out_file << std::fixed << "Estimated Triangles = " << tonic_algo.get_global_triangles() << "\n" <<
-             "Time = " << time << " s\n";
+             "Time of Estimation = " << time << " s\n";
     out_file.close();
 
     std::vector<int> nodes;
