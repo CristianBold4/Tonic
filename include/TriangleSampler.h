@@ -6,7 +6,6 @@
 #define TONIC_TRIANGLESAMPLER_H
 
 #include "hash_table5.hpp"
-#include "ankerl/unordered_dense.h"
 #include "HeavyEdgesPQ.h"
 #include <iostream>
 #include <string>
