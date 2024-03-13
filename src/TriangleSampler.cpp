@@ -10,9 +10,9 @@ TriangleSampler::TriangleSampler(int random_seed, long k, double alpha, double b
     WR_size_ = (long) (k_ * alpha);
     H_size_ = (long) ((k_ - WR_size_) * beta);
     SL_size_ = k_ - WR_size_ - H_size_;
-    waiting_room_ = new edge[WR_size_];
-    heavy_edges_ = FixedSizePQ<heavy_edge, heavy_edge_cmp>(H_size_);
-    light_edges_sample_ = new edge[SL_size_];
+    waiting_room_ = new Edge[WR_size_];
+    heavy_edges_ = FixedSizePQ<Heavy_edge, heavy_edge_cmp>(H_size_);
+    light_edges_sample_ = new Edge[SL_size_];
     num_edges_ = 0;
     printf("WR size = %ld, H size = %ld, SL size = %ld\n", WR_size_, H_size_, SL_size_);
     subgraph_ = emhash5::HashMap<int, emhash5::HashMap<int, bool>>();
@@ -209,7 +209,7 @@ bool TriangleSampler::sample_edge(const int src, const int dst) {
     } else {
         // -- H is full -> retrieve the lightest heavy edge between current and lightest in H
         if (SL_cur_ < SL_size_) {
-            edge uv_sample = {u, v};
+            Edge uv_sample = {u, v};
             int current_heaviness = get_heaviness(u, v);
             bool is_det = false;
             if (current_heaviness > -1) {
@@ -239,9 +239,9 @@ bool TriangleSampler::sample_edge(const int src, const int dst) {
             int oldest_idx = (int) (WR_cur_ % WR_size_);
             WR_cur_++;
 
-            edge oldest_edge = waiting_room_[oldest_idx];
+            Edge oldest_edge = waiting_room_[oldest_idx];
             waiting_room_[oldest_idx] = {u, v};
-            edge uv_sample = oldest_edge;
+            Edge uv_sample = oldest_edge;
             int current_heaviness = get_heaviness(uv_sample.first, uv_sample.second);
             if (current_heaviness > -1) {
                 auto lightest_heavy_edge = heavy_edges_.top();
@@ -264,7 +264,7 @@ bool TriangleSampler::sample_edge(const int src, const int dst) {
                 subgraph_[uv_sample.second][uv_sample.first] = false;
                 // -- evict edge uniformly at random
                 int replace_idx = (int) (rand() % SL_size_);
-                edge uv_replace = light_edges_sample_[replace_idx];
+                Edge uv_replace = light_edges_sample_[replace_idx];
                 remove_edge(uv_replace.first, uv_replace.second);
                 light_edges_sample_[replace_idx] = uv_sample;
             } else {

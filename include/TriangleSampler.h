@@ -11,13 +11,13 @@
 #include <string>
 #include <random>
 
-#define edge std::pair<int, int>
-#define heavy_edge std::pair<edge, int>
+using Edge = std::pair<int, int>;
+using Heavy_edge = std::pair<Edge, int>;
 # define MAX_ID_NODE 30000000
 
 // -- heavy edge comparator -> return lightest edge
 struct heavy_edge_cmp {
-    bool operator()(const heavy_edge &a, const heavy_edge &b) const {
+    bool operator()(const Heavy_edge &a, const Heavy_edge &b) const {
         return a.second > b.second;
     }
 };
@@ -40,9 +40,9 @@ private:
     emhash5::HashMap<long, int> edge_id_oracle_;
 
     // -- sets for storing edges
-    edge* waiting_room_;
-    FixedSizePQ<heavy_edge, heavy_edge_cmp> heavy_edges_;
-    edge* light_edges_sample_;
+    Edge* waiting_room_;
+    FixedSizePQ<Heavy_edge, heavy_edge_cmp> heavy_edges_;
+    Edge* light_edges_sample_;
 
     std::mt19937 gen_;
     std::uniform_real_distribution<double> dis_;
