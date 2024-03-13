@@ -4,13 +4,6 @@
 
 #include "../include/Utils.h"
 
-unsigned long long Utils::edge_to_id(const int u, const int v) {
-    int nu = (u < v ? u : v);
-    int nv = (u < v ? v : u);
-    return static_cast<unsigned long long>(MAX_ID_NODE) * static_cast<unsigned long long>(nu) +
-           static_cast<unsigned long long>(nv);
-}
-
 bool Utils::read_node_oracle(std::string &oracle_filename, const char delimiter, int skip,
                              emhash5::HashMap<int, int> &node_oracle) {
 
@@ -56,7 +49,7 @@ bool Utils::read_edge_oracle(std::string &oracle_filename, const char delimiter,
                 int v = std::stoi(token);
                 std::getline(iss, token, delimiter);
                 int label = std::stoi(token);
-                edge_id_oracle.insert_unique(edge_to_id(u, v), label);
+                edge_id_oracle.insert_unique(TriangleSampler::edge_to_id(u, v), label);
             }
             i++;
         }

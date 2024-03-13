@@ -13,27 +13,20 @@
 
 using Edge = std::pair<int, int>;
 using Heavy_edge = std::pair<Edge, int>;
-# define MAX_ID_NODE 30000000
 
-// -- heavy edge comparator -> return lightest edge
-struct heavy_edge_cmp {
-    bool operator()(const Heavy_edge &a, const Heavy_edge &b) const {
-        return a.second > b.second;
-    }
-};
-
-inline unsigned long long edge_to_id(const int u, const int v) {
-    int nu = (u < v ? u : v);
-    int nv = (u < v ? v : u);
-    return static_cast<unsigned long long>(MAX_ID_NODE) * static_cast<unsigned long long>(nu) +
-           static_cast<unsigned long long>(nv);
-}
 
 class TriangleSampler {
 
 private:
 
     emhash5::HashMap<int , emhash5::HashMap<int, bool>> subgraph_;
+
+    // -- heavy edge comparator -> return lightest edge
+    struct heavy_edge_cmp {
+        bool operator()(const Heavy_edge &a, const Heavy_edge &b) const {
+            return a.second > b.second;
+        }
+    };
 
     // -- oracles
     emhash5::HashMap<int, int> node_oracle_;
@@ -80,7 +73,18 @@ private:
     inline double next_double();
 
 
+
+
 public:
+
+    constexpr static unsigned long long MAX_ID_NODE = 50000000;
+
+    inline static unsigned long long edge_to_id(const int u, const int v) {
+        int nu = (u < v ? u : v);
+        int nv = (u < v ? v : u);
+        return (MAX_ID_NODE) * static_cast<unsigned long long>(nu) +
+               static_cast<unsigned long long>(nv);
+    }
 
     TriangleSampler(int random_seed, long k, double alpha, double beta);
 
