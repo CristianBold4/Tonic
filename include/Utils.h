@@ -11,16 +11,34 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <unordered_set>
+
+struct hash_edge {
+    size_t operator()(const std::pair<int, int> &p) const {
+        return TriangleSampler::edge_to_id(p.first, p.second);
+    }
+};
 
 class Utils {
 
 public:
 
-    static bool read_node_oracle(std::string &oracle_filename, const char delimiter, int skip,
+    static long run_exact_algorithm(std::string &dataset_filepath);
+
+    static bool read_node_oracle(std::string &oracle_filename, char delimiter, int skip,
                                  emhash5::HashMap<int, int> &node_oracle);
 
-    static bool read_edge_oracle(std::string &oracle_filename, const char delimiter, int skip,
+    static bool read_edge_oracle(std::string &oracle_filename, char delimiter, int skip,
                                  emhash5::HashMap<long, int> &edge_id_oracle);
+
+    static void preprocess_data(const std::string &dataset_path, std::string &delimiter,
+                                int skip, std::string &output_path);
+
+    static void build_edge_exact_oracle(std::string &filepath, double percentage_retain,
+                                  std::string &output_path);
+
+    static void build_node_oracle(std::string &filepath, double percentage_retain,
+                                        std::string &output_path);
 };
 
 

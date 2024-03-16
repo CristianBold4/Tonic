@@ -18,4 +18,29 @@ add_executable(Tonic src/main.cpp
         include/TriangleSampler.h
         include/HeavyEdgesPQ.h)
 
+
+add_executable(BuildOracle src/main.cpp
+        src/Utils.cpp
+        include/Utils.h
+        include/hash_table5.hpp
+        src/TriangleSampler.cpp
+        include/TriangleSampler.h)
+
+add_executable(DataPreprocessing src/main.cpp
+        src/Utils.cpp
+        include/Utils.h
+        include/hash_table5.hpp
+        src/TriangleSampler.cpp
+        include/TriangleSampler.h)
+
+add_executable(RunExactAlgo src/main.cpp
+        src/Utils.cpp
+        include/Utils.h
+        include/hash_table5.hpp
+        src/TriangleSampler.cpp
+        include/TriangleSampler.h)
+
 target_include_directories(Tonic PRIVATE include)
+target_include_directories(BuildOracle PRIVATE include)
+target_include_directories(DataPreprocessing PRIVATE include)
+target_include_directories(RunExactAlgo PRIVATE include)
