@@ -258,7 +258,7 @@ long Utils::run_exact_algorithm(std::string &dataset_filepath, std::string &outp
     long num_nodes = (long) graph_stream.size();
     printf("Processed dataset with n = %ld, m = %ld\n", num_nodes, nline);
     // -- write results
-    std::ofstream out_file(output_path);
+    std::ofstream out_file(output_path, std::ios::app);
     out_file << "Ground Truth:" << "\n";
     out_file << "Nodes = " << num_nodes << "\n";
     out_file << "Edges = " << nline << "\n";
