@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
 
     // -- run exact
     if (strcmp(project, "RunExactAlgo") == 0) {
-        if (argc != 2) {
+        if (argc != 3) {
             std::cerr << "Usage: RunExactAlgo <preprocessed_dataset_path> <output_path>\n";
             return 1;
         } else {
