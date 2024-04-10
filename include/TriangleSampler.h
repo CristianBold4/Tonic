@@ -77,7 +77,7 @@ private:
 
 public:
 
-    constexpr static unsigned long long MAX_ID_NODE = 50000000;
+    constexpr static unsigned long long MAX_ID_NODE = 75000000;
 
     inline static unsigned long long edge_to_id(const int u, const int v) {
         int nu = (u < v ? u : v);

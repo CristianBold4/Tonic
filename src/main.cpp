@@ -123,7 +123,7 @@ int main(int argc, char **argv) {
 
             }
             else {
-                std::cerr << "Build Oracle - Error! Type of Oracle must be Exact or MinDeg.\n";
+                std::cerr << "Build Oracle - Error! Type of Oracle must be Exact or Node.\n";
                 return 1;
             }
 
