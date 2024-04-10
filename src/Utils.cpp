@@ -182,7 +182,7 @@ void Utils::build_node_oracle(std::string &filepath, double percentage_retain, s
                 node_map[v] = 1;
 
             if (nline % 3000000 == 0) {
-                printf("Processed %ld edges", nline);
+                printf("Processed %ld edges\n", nline);
             }
         }
 
