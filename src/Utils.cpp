@@ -200,7 +200,7 @@ void Utils::build_node_oracle(std::string &filepath, double percentage_retain, s
     }
 }
 
-long Utils::run_exact_algorithm(std::string &dataset_filepath) {
+long Utils::run_exact_algorithm(std::string &dataset_filepath, std::string &output_path) {
 
     std::ifstream file(dataset_filepath);
     std::string line, su, sv;
@@ -241,7 +241,7 @@ long Utils::run_exact_algorithm(std::string &dataset_filepath) {
         n_min = (du < dv) ? u : v;
         n_max = (du < dv) ? v : u;
         min_neighbors = graph_stream[n_min];
-        for (auto neigh: min_neighbors) {
+        for (const auto &neigh: min_neighbors) {
             if (graph_stream[n_max].find(neigh) != graph_stream[n_max].end()) {
                 // -- triangle {n_min, neigh, n_max} discovered
                 total_T += 1;
@@ -257,6 +257,13 @@ long Utils::run_exact_algorithm(std::string &dataset_filepath) {
 
     long num_nodes = (long) graph_stream.size();
     printf("Processed dataset with n = %ld, m = %ld\n", num_nodes, nline);
+    // -- write results
+    std::ofstream out_file(output_path);
+    out_file << "Ground Truth:" << "\n";
+    out_file << "Nodes = " << num_nodes << "\n";
+    out_file << "Edges = " << nline << "\n";
+    out_file << "Triangles = " << total_T << "\n";
+    out_file.close();
     return total_T;
 }
 

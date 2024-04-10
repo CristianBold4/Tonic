@@ -82,12 +82,13 @@ int main(int argc, char **argv) {
     // -- run exact
     if (strcmp(project, "RunExactAlgo") == 0) {
         if (argc != 2) {
-            std::cerr << "Usage: RunExactAlgo <preprocessed_dataset_path> \n";
+            std::cerr << "Usage: RunExactAlgo <preprocessed_dataset_path> <output_path>\n";
             return 1;
         } else {
             std::string dataset_path(argv[1]);
+            std::string output_path(argv[2]);
             auto start = std::chrono::high_resolution_clock::now();
-            long total_T = Utils::run_exact_algorithm(dataset_path);
+            long total_T = Utils::run_exact_algorithm(dataset_path, output_path);
             auto stop = std::chrono::high_resolution_clock::now();
             double time = (double) ((std::chrono::duration_cast<std::chrono::milliseconds>(stop - start)).count()) / 1000;
             if (total_T > -1)
