@@ -35,6 +35,7 @@ bool Utils::read_node_oracle(std::string &oracle_filename, char delimiter, int s
 bool Utils::read_edge_oracle(std::string &oracle_filename, char delimiter, int skip,
                              emhash5::HashMap<long, int> &edge_id_oracle) {
 
+
     std::ifstream file(oracle_filename);
     std::string line;
     int i = 0;
@@ -64,13 +65,15 @@ bool Utils::read_edge_oracle(std::string &oracle_filename, char delimiter, int s
 
 void Utils::build_edge_exact_oracle(std::string &filepath, double percentage_retain, std::string &output_path) {
 
+    std::cout << "Building edge oracle...\n";
+
     std::ifstream file(filepath);
     std::string line;
 
-    std::unordered_map<Edge, int, hash_edge> oracle_heaviness;
+    emhash5::HashMap<Edge, int, hash_edge> oracle_heaviness;
 
     // -- graph
-    std::unordered_map<int, std::unordered_set<int>> graph_stream;
+    emhash5::HashMap<int, std::unordered_set<int>> graph_stream;
     std::unordered_set<int> min_neighs;
 
     long total_T = 0.0;
@@ -119,7 +122,12 @@ void Utils::build_edge_exact_oracle(std::string &filepath, double percentage_ret
 
         // -- eof: sort results
         std::cout << "Sorting the oracle and retrieving the top " << percentage_retain << " values...\n";
-        std::vector<std::pair<Edge, int>> sorted_oracle(oracle_heaviness.begin(), oracle_heaviness.end());
+        std::vector<std::pair<Edge, int>> sorted_oracle;
+        sorted_oracle.reserve(oracle_heaviness.size());
+        for (auto &elem: oracle_heaviness) {
+            sorted_oracle.emplace_back(elem.first, elem.second);
+        }
+
         std::sort(sorted_oracle.begin(), sorted_oracle.end(),
                   [](const std::pair<Edge, int> &a, const std::pair<Edge, int> &b) { return a.second > b.second; });
 
@@ -145,10 +153,13 @@ void Utils::build_edge_exact_oracle(std::string &filepath, double percentage_ret
 
 void Utils::build_node_oracle(std::string &filepath, double percentage_retain, std::string &output_path) {
 
+    std::cout << "Building node oracle...\n";
+
     std::ifstream file(filepath);
     std::string line;
 
-    std::unordered_map<int, int> node_map;
+    emhash5::HashMap<int, int> node_map;
+    // std::unordered_map<int, int> node_map;
 
     int u, v, t;
 
@@ -177,7 +188,14 @@ void Utils::build_node_oracle(std::string &filepath, double percentage_retain, s
 
         // -- eof: sort results
         std::cout << "Sorting the oracle and retrieving the top " << percentage_retain << " values...\n";
-        std::vector<std::pair<int, int>> sorted_oracle(node_map.begin(), node_map.end());
+        // convert node map to vector of pairs
+        std::vector <std::pair<int, int>> sorted_oracle;
+        sorted_oracle.reserve(node_map.size());
+        for (auto &elem: node_map) {
+            sorted_oracle.emplace_back(elem.first, elem.second);
+        }
+
+        // std::vector<std::pair<int, int>> sorted_oracle(node_map.begin(), node_map.end());
         std::sort(sorted_oracle.begin(), sorted_oracle.end(),
                   [](const std::pair<int, int> &a, const std::pair<int, int> &b) { return a.second > b.second; });
 
