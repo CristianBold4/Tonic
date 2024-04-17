@@ -1,0 +1,1 @@
+/usr/bin/c++  -O3 -Wall -march=native -O3 -DNDEBUG   CMakeFiles/RunExactAlgo.dir/src/main.cpp.o CMakeFiles/RunExactAlgo.dir/src/Utils.cpp.o CMakeFiles/RunExactAlgo.dir/src/TriangleSampler.cpp.o  -o RunExactAlgo 

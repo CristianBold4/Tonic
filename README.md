@@ -11,20 +11,22 @@ Code is deployed in *C++ 17* under *gcc 9.4.0* compiler. Additionally, *CMake 3.
    
 3. Preprocess the raw dataset
    
-   `build/DataPreprocessing (dataset_path) (delimiter) (skip) (output_path)`
+   `build/DataPreprocessing <dataset_path> <delimiter> <skip> <output_path>`
 
 5. Build the Oracle
 
-    `build/BuildOracle (preprocessed_dataset_path) (type of the oracle = [Exact, MinDeg]) (fraction_retain_top_edges) (output_path)`
+    `build/BuildOracle <preprocessed_dataset_path> <type of the oracle = {Exact, Node}> <percentage_retain> <output_path>`
+
+   where `<percentage_retain>` is the fraction of top heavies edges/nodes to be retained in the oracle.
 
 8. Run *Tonic* Algorithm: 
 
-    `build/Tonic (random_seed) (memory_budget) (alpha) (beta) (preprocessed_dataset_path) (oracle_path) (output_path)`
+    `build/Tonic <random_seed> <memory_budget> <alpha> <beta> <preprocessed_dataset_path> <oracle_path> <oracle_type = {nodes, edges}> <output_path>`
 
 
 ## Datasets
 
-Here are the links to the datasets we used to perform the experiments.
+Here are the links to the datasets we used to perform the experiments. Some of them have not been included in the paper, but we leave anyway their references.
 
 ### Global and Local Triangles Experiments:
 
@@ -39,6 +41,8 @@ Here are the links to the datasets we used to perform the experiments.
 | <a href=http://konect.cc/networks/actor-collaboration>Actors Collaborations</a>| 382k | 15M | 346M |
 | <a href=http://konect.cc/networks/sx-stackoverflow>Stackoverflow </a> | 2.5M | 28M | 114M |
 | <a href=https://snap.stanford.edu/data/soc-LiveJournal1.html>SOC Live Journals</a> | 4.8M | 42.8M | 285.7M |
+| <a href=https://anlab-kaist.github.io/traces/WWW2010>Twitter</a> | 41M | 1.5B | 34.6B |
+
 
 ### Snapshot Experiments:
 This kind of datasets consists in a collection of consecutive graphs registered each in a given time of interval, 
