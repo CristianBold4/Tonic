@@ -121,23 +121,35 @@ void Utils::build_edge_exact_oracle(std::string &filepath, double percentage_ret
         }
 
         // -- eof: sort results
-        int max_size_pq = (int) (percentage_retain * (int) oracle_heaviness.size());
-        FixedSizePQ<std::pair<Edge, int>, edge_feature_comparator> sorted_oracle(max_size_pq);
 
         std::cout << "Sorting the oracle and retrieving the top " << percentage_retain << " values...\n";
-        for (const auto &elem: oracle_heaviness) {
-            sorted_oracle.push({elem.first, elem.second});
+        std::vector<std::pair<Edge, int>> sorted_oracle;
+        sorted_oracle.reserve(oracle_heaviness.size());
+        for (auto &elem: oracle_heaviness) {
+            sorted_oracle.emplace_back(elem.first, elem.second);
         }
+
+
+        std::sort(sorted_oracle.begin(), sorted_oracle.end(),
+                  [](const std::pair<Edge, int> &a, const std::pair<Edge, int> &b) { return a.second > b.second; });
 
         // -- write results
         std::cout << "Done!\nWriting results...\n";
+        int stop_idx = (int) (percentage_retain * (int) sorted_oracle.size());
+
         std::ofstream out_file(output_path);
         std::cout << "Total Triangles -> " << total_T << "\n";
-        std::cout << "Oracle Size = " << sorted_oracle.size() << "\n";
+        std::cout << "Full Oracle Size = " << sorted_oracle.size() << "\n";
 
-        for (const auto &elem: sorted_oracle) {
+        std::cout << "Writing top " << stop_idx << " entries...\n";
+
+        int cnt = 0;
+        for (auto elem: sorted_oracle) {
+            if (cnt >= stop_idx) break;
             out_file << elem.first.first << " " << elem.first.second << " " << elem.second << "\n";
+            cnt++;
         }
+
 
     } else {
         std::cerr << "Error! Unable to open oracle file " << filepath << "\n";
@@ -182,7 +194,7 @@ void Utils::build_node_oracle(std::string &filepath, double percentage_retain, s
         // -- eof: sort results
         std::cout << "Sorting the oracle and retrieving the top " << percentage_retain << " values...\n";
         // convert node map to vector of pairs
-        std::vector <std::pair<int, int>> sorted_oracle;
+        std::vector<std::pair<int, int>> sorted_oracle;
         sorted_oracle.reserve(node_map.size());
         for (auto &elem: node_map) {
             sorted_oracle.emplace_back(elem.first, elem.second);
@@ -319,7 +331,8 @@ void Utils::preprocess_data(const std::string &dataset_filepath, std::string &de
             int v2 = (u < v) ? v : u;
             std::pair uv = std::make_pair(v1, v2);
             // -- check for multiple edges
-            if (graph_stream[u].find(v) != graph_stream[u].end() and graph_stream[v].find(u) != graph_stream[v].end()) {
+            if (graph_stream[u].find(v) != graph_stream[u].end() and
+                graph_stream[v].find(u) != graph_stream[v].end()) {
                 edge_stream[uv] = t;
                 continue;
             }
