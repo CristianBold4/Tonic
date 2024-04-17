@@ -26,7 +26,7 @@ private:
 
     struct edge_feature_comparator{
         bool operator()(const std::pair<Edge, int> &a, const std::pair<Edge, int> &b) const {
-            return a.second > b.second;
+            return a.second < b.second;
         }
 
     };

@@ -121,7 +121,7 @@ void Utils::build_edge_exact_oracle(std::string &filepath, double percentage_ret
         }
 
         // -- eof: sort results
-        int max_size_pq = (int) (percentage_retain * oracle_heaviness.size());
+        int max_size_pq = (int) (percentage_retain * (int) oracle_heaviness.size());
         FixedSizePQ<std::pair<Edge, int>, edge_feature_comparator> sorted_oracle(max_size_pq);
 
         std::cout << "Sorting the oracle and retrieving the top " << percentage_retain << " values...\n";
