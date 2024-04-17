@@ -283,4 +283,5 @@ void TriangleSampler::process_edge(const int u, const int v) {
     bool is_det = sample_edge(u, v);
     add_edge(u, v, is_det);
     t_++;
+    assert(heavy_edges_.size() <= H_size_);
 }
