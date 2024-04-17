@@ -121,29 +121,22 @@ void Utils::build_edge_exact_oracle(std::string &filepath, double percentage_ret
         }
 
         // -- eof: sort results
-        std::cout << "Sorting the oracle and retrieving the top " << percentage_retain << " values...\n";
-        std::vector<std::pair<Edge, int>> sorted_oracle;
-        sorted_oracle.reserve(oracle_heaviness.size());
-        for (auto &elem: oracle_heaviness) {
-            sorted_oracle.emplace_back(elem.first, elem.second);
-        }
+        int max_size_pq = (int) (percentage_retain * oracle_heaviness.size());
+        FixedSizePQ<std::pair<Edge, int>, edge_feature_comparator> sorted_oracle(max_size_pq);
 
-        std::sort(sorted_oracle.begin(), sorted_oracle.end(),
-                  [](const std::pair<Edge, int> &a, const std::pair<Edge, int> &b) { return a.second > b.second; });
+        std::cout << "Sorting the oracle and retrieving the top " << percentage_retain << " values...\n";
+        for (const auto &elem: oracle_heaviness) {
+            sorted_oracle.push({elem.first, elem.second});
+        }
 
         // -- write results
         std::cout << "Done!\nWriting results...\n";
-        int stop_idx = (int) (percentage_retain * (int) sorted_oracle.size());
-
         std::ofstream out_file(output_path);
         std::cout << "Total Triangles -> " << total_T << "\n";
         std::cout << "Oracle Size = " << sorted_oracle.size() << "\n";
 
-        int cnt = 0;
-        for (auto elem: sorted_oracle) {
-            if (cnt > stop_idx) break;
+        for (const auto &elem: sorted_oracle) {
             out_file << elem.first.first << " " << elem.first.second << " " << elem.second << "\n";
-            cnt++;
         }
 
     } else {
