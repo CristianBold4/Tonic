@@ -13,6 +13,7 @@
 #include <sstream>
 #include <unordered_set>
 
+
 struct hash_edge {
     size_t operator()(const std::pair<int, int> &p) const {
         return TriangleSampler::edge_to_id(p.first, p.second);
@@ -20,6 +21,15 @@ struct hash_edge {
 };
 
 class Utils {
+
+private:
+
+    struct edge_feature_comparator{
+        bool operator()(const std::pair<Edge, int> &a, const std::pair<Edge, int> &b) const {
+            return a.second > b.second;
+        }
+
+    };
 
 public:
 
