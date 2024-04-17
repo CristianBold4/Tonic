@@ -1,0 +1,1 @@
+/usr/bin/c++  -O3 -Wall -march=native -O3 -DNDEBUG   CMakeFiles/DataPreprocessing.dir/src/main.cpp.o CMakeFiles/DataPreprocessing.dir/src/Utils.cpp.o CMakeFiles/DataPreprocessing.dir/src/TriangleSampler.cpp.o  -o DataPreprocessing 

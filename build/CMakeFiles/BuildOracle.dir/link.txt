@@ -1,0 +1,1 @@
+/usr/bin/c++  -O3 -Wall -march=native -O3 -DNDEBUG   CMakeFiles/BuildOracle.dir/src/main.cpp.o CMakeFiles/BuildOracle.dir/src/Utils.cpp.o CMakeFiles/BuildOracle.dir/src/TriangleSampler.cpp.o  -o BuildOracle 
