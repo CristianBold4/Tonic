@@ -195,29 +195,36 @@ int main(int argc, char **argv) {
                tonic_algo.get_global_triangles());
         // -- write results
         // -- global estimates
-        std::ofstream out_file(output_path + "_global_count.txt", std::ios::app);
+        std::ofstream out_file(output_path + "_global_count.csv", std::ios::app);
         // -- local estimates
-        std::ofstream out_file_local(output_path + "_local_count.txt", std::ios::app);
-        std::string oracle_type_str = edge_oracle_flag ? "Edge Oracle" : "Node Oracle";
-        out_file << "Tonic Algo with " << oracle_type_str << ": " << oracle_path << "\nOracle Size: " << size_oracle
-                 << "\nOracle Read Time: " << time_oracle << " s\nMemory Budget = " << memory_budget << "\n";
-        out_file_local << "Tonic Algo with " << oracle_type_str << ": " << oracle_path << "\nOracle Size: "
-                       << size_oracle
-                       << "\n Oracle Read Time: " << time_oracle << "s \nMemory Budget = " << memory_budget << "\n";
+        // std::ofstream out_file_local(output_path + "_local_count.txt", std::ios::app);
+        std::string oracle_type_str = edge_oracle_flag ? "Edges" : "Nodes";
+
+        //out_file << "Algo,Params,Oracle,SizeOracle,TimeOracle,MemEdges,GlobalTriangleCount,Time\n";
+        out_file << "TonicINS,Alpha=" << alpha << "-Beta=" << beta << "," << oracle_type_str << "," << size_oracle << ","
+                 << time_oracle << "," << memory_budget << "," << tonic_algo.get_global_triangles() << "," << time << "\n";
+
+        //        out_file << "Tonic Algo with " << oracle_type_str << ": " << oracle_path << "\nOracle Size: " << size_oracle
+        //                 << "\nOracle Read Time: " << time_oracle << " s\nMemory Budget = " << memory_budget << "\n";
+        //        out_file_local << "Tonic Algo with " << oracle_type_str << ": " << oracle_path << "\nOracle Size: "
+        //                       << size_oracle
+        //                       << "\n Oracle Read Time: " << time_oracle << "s \nMemory Budget = " << memory_budget << "\n";
 
 
-        out_file << std::fixed << "Estimated Triangles = " << tonic_algo.get_global_triangles() << "\n" <<
-                 "Time of Estimation = " << time << " s\n";
+        //        out_file << std::fixed << "Estimated Triangles = " << tonic_algo.get_global_triangles() << "\n" <<
+        //                 "Time of Estimation = " << time << " s\n";
         out_file.close();
 
-        std::vector<int> nodes;
-        tonic_algo.get_local_nodes(nodes);
-        for (int u: nodes) {
-            double count = tonic_algo.get_local_triangles(u);
-            out_file_local << u << " " << std::fixed << count << "\n";
-        }
-        out_file_local.close();
+        //        // -- local triangles
+        //        std::vector<int> nodes;
+        //        tonic_algo.get_local_nodes(nodes);
+        //        for (int u: nodes) {
+        //            double count = tonic_algo.get_local_triangles(u);
+        //            out_file_local << u << " " << std::fixed << count << "\n";
+        //        }
+        //        out_file_local.close();
 
+        std::cout << "Done!\n";
         return 0;
     }
 
