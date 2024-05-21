@@ -180,17 +180,18 @@ void Utils::build_edge_exact_nowr_oracle(std::string &filepath, double percentag
         while (std::getline(file, line)) {
             nline++;
             std::istringstream iss(line);
-            iss >> src>> dst >> t;
+            iss >> src >> dst >> t;
+
+            u = src;
+            v = dst;
+            if (src > dst){
+                u = dst;
+                v = src;
+            }
+
             if (u == v) continue;
             if (graph_stream[u].find(v) != graph_stream[u].end() and graph_stream[v].find(u) != graph_stream[v].end()) {
                 continue;
-            }
-
-            src = u;
-            dst = v;
-            if (src > dst){
-                u = dst;
-                v= src;
             }
 
             edge_time_arrival[{u, v}] = nline;
