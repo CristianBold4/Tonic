@@ -99,7 +99,7 @@ int main(int argc, char **argv) {
 
     // -- build oracle
     if (strcmp(project, "BuildOracle") == 0) {
-        if (argc != 5) {
+        if (argc < 6) {
             std::cerr << "Usage: BuildOracle <preprocessed_dataset_path> <type = [Exact, noWR, Node]>, <percentage_retain>,"
                          " <output_path>, [<wr_size>] \n";
             return 1;
