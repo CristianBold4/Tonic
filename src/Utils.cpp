@@ -156,6 +156,122 @@ void Utils::build_edge_exact_oracle(std::string &filepath, double percentage_ret
     }
 }
 
+void Utils::build_edge_exact_nowr_oracle(std::string &filepath, double percentage_retain, std::string &output_path,
+                                         int wr_size) {
+
+    std::cout << "Building edge oracle...\n";
+
+    std::ifstream file(filepath);
+    std::string line;
+
+    emhash5::HashMap<Edge, int, hash_edge> oracle_heaviness;
+    emhash5::HashMap<Edge, int, hash_edge> edge_wr_heaviness;
+    emhash5::HashMap<Edge, int, hash_edge> edge_time_arrival;
+
+    // -- graph
+    emhash5::HashMap<int, std::unordered_set<int>> graph_stream;
+    std::unordered_set<int> min_neighs;
+
+    long total_T = 0.0;
+    int u, v, t, src, dst;
+
+    if (file.is_open()) {
+        long nline = 0;
+        while (std::getline(file, line)) {
+            nline++;
+            std::istringstream iss(line);
+            iss >> src>> dst >> t;
+            if (u == v) continue;
+            if (graph_stream[u].find(v) != graph_stream[u].end() and graph_stream[v].find(u) != graph_stream[v].end()) {
+                continue;
+            }
+
+            src = u;
+            dst = v;
+            if (src > dst){
+                u = dst;
+                v= src;
+            }
+
+            edge_time_arrival[{u, v}] = nline;
+
+            graph_stream[u].emplace(v);
+            graph_stream[v].emplace(u);
+
+            int du = (int) graph_stream[u].size();
+            int dv = (int) graph_stream[v].size();
+            int n_min = (du < dv) ? u : v;
+            int n_max = (du < dv) ? v : u;
+            min_neighs = graph_stream[n_min];
+            int common_neighs = 0;
+            for (auto neigh: min_neighs) {
+                if (graph_stream[n_max].find(neigh) != graph_stream[n_max].end()) {
+                    common_neighs++;
+                    int entry_11 = (n_min < neigh) ? n_min : neigh;
+                    int entry_12 = (n_min < neigh) ? neigh : n_min;
+                    int entry_21 = (neigh < n_max) ? neigh : n_max;
+                    int entry_22 = (neigh < n_max) ? n_max : neigh;
+
+                    oracle_heaviness[{entry_11, entry_12}] += 1;
+                    oracle_heaviness[{entry_21, entry_22}] += 1;
+
+                    // -- account for triangles inside the waiting room
+                    if (nline - edge_time_arrival[{entry_11, entry_12}] < wr_size)
+                        edge_wr_heaviness[{entry_11, entry_12}] += 1;
+
+                    if (nline - edge_time_arrival[{entry_21, entry_22}] < wr_size)
+                        edge_wr_heaviness[{entry_21, entry_22}] += 1;
+
+                }
+            }
+
+            int entry_31 = (u < v) ? u : v;
+            int entry_32 = (u < v) ? v : u;
+            oracle_heaviness[{entry_31, entry_32}] = common_neighs;
+            edge_wr_heaviness[{entry_31, entry_32}] = 0;
+
+            total_T += common_neighs;
+
+            if (nline % 3000000 == 0) {
+                printf("Processed %ld edges | Counted %ld triangles\n", nline, total_T);
+            }
+        }
+
+        // -- eof: sort results
+
+        std::cout << "Sorting the oracle and retrieving the top " << percentage_retain << " values...\n";
+        std::vector<std::pair<Edge, int>> sorted_oracle;
+        sorted_oracle.reserve(oracle_heaviness.size());
+        for (auto &elem: oracle_heaviness) {
+            sorted_oracle.emplace_back(elem.first, elem.second - edge_wr_heaviness[elem.first]);
+        }
+
+        std::sort(sorted_oracle.begin(), sorted_oracle.end(),
+                  [](const std::pair<Edge, int> &a, const std::pair<Edge, int> &b) { return a.second > b.second; });
+
+        // -- write results
+        std::cout << "Done!\nWriting results...\n";
+        int stop_idx = (int) (percentage_retain * (int) sorted_oracle.size());
+
+        std::ofstream out_file(output_path);
+        std::cout << "Total Triangles -> " << total_T << "\n";
+        std::cout << "Full Oracle Size = " << sorted_oracle.size() << "\n";
+
+        std::cout << "Writing top " << stop_idx << " entries...\n";
+
+        int cnt = 0;
+        for (auto elem: sorted_oracle) {
+            if (cnt >= stop_idx) break;
+            out_file << elem.first.first << " " << elem.first.second << " " << elem.second << "\n";
+            cnt++;
+        }
+
+
+    } else {
+        std::cerr << "Error! Unable to open oracle file " << filepath << "\n";
+    }
+}
+
 void Utils::build_node_oracle(std::string &filepath, double percentage_retain, std::string &output_path) {
 
     std::cout << "Building node oracle...\n";

@@ -47,6 +47,9 @@ public:
     static void build_edge_exact_oracle(std::string &filepath, double percentage_retain,
                                   std::string &output_path);
 
+    static void build_edge_exact_nowr_oracle(std::string &filepath, double percentage_retain,
+                                        std::string &output_path, int wr_size);
+
     static void build_node_oracle(std::string &filepath, double percentage_retain,
                                         std::string &output_path);
 };

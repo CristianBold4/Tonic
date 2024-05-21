@@ -100,8 +100,8 @@ int main(int argc, char **argv) {
     // -- build oracle
     if (strcmp(project, "BuildOracle") == 0) {
         if (argc != 5) {
-            std::cerr << "Usage: BuildOracle <preprocessed_dataset_path> <type = [Exact, Node]>, <percentage_retain>"
-                         " <output_path> \n";
+            std::cerr << "Usage: BuildOracle <preprocessed_dataset_path> <type = [Exact, noWR, Node]>, <percentage_retain>,"
+                         " <output_path>, [<wr_size>] \n";
             return 1;
         } else {
             std::string dataset_path(argv[1]);
@@ -115,14 +115,19 @@ int main(int argc, char **argv) {
                 double time = (double) ((std::chrono::duration_cast<std::chrono::milliseconds>(stop - start)).count()) / 1000;
                 printf("Exact Edge Oracle successfully run in time %.3f!\n", time);
 
-            } else if (strcmp(type_oracle.c_str(), "Node") == 0) {
-                Utils::build_node_oracle(dataset_path, percentage_retain, output_path);
+            } else if(strcmp(type_oracle.c_str(), "noWR") == 0) {
+                int wr_size = atoi(argv[5]);
+                Utils::build_edge_exact_nowr_oracle(dataset_path, percentage_retain, output_path, wr_size);
                 auto stop = std::chrono::high_resolution_clock::now();
                 double time = (double) ((std::chrono::duration_cast<std::chrono::milliseconds>(stop - start)).count()) / 1000;
-                printf("Node Map successfully run in time %.3f!\n", time);
+                printf("Exact-noWR Edge Oracle successfully run in time %.3f!\n", time);
+            } else if (strcmp(type_oracle.c_str(), "Node") == 0) {
+                    Utils::build_node_oracle(dataset_path, percentage_retain, output_path);
+                    auto stop = std::chrono::high_resolution_clock::now();
+                    double time = (double) ((std::chrono::duration_cast<std::chrono::milliseconds>(stop - start)).count()) / 1000;
+                    printf("Node Map successfully run in time %.3f!\n", time);
 
-            }
-            else {
+                } else {
                 std::cerr << "Build Oracle - Error! Type of Oracle must be Exact or Node.\n";
                 return 1;
             }
