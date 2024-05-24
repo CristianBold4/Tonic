@@ -43,11 +43,10 @@ private:
 
     // -- member variables
     unsigned long long t_;
-    long k_;
+
     long WR_size_;
     long H_size_;
     long SL_size_;
-    bool edge_oracle_flag_ = false;
 
     // -- current counters
     long WR_cur_ = 0;
@@ -76,6 +75,11 @@ private:
 
 
 public:
+
+    long k_;
+    double alpha_;
+    double beta_;
+    bool edge_oracle_flag_ = false;
 
     constexpr static unsigned long long MAX_ID_NODE = 75000000;
 

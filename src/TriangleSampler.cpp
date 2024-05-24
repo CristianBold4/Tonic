@@ -4,7 +4,8 @@
 
 #include "TriangleSampler.h"
 
-TriangleSampler::TriangleSampler(int random_seed, long k, double alpha, double beta) : t_(0), k_(k) {
+TriangleSampler::TriangleSampler(int random_seed, long k, double alpha, double beta) : t_(0), k_(k), alpha_(alpha),
+                                                                                       beta_(beta)  {
 
     printf("Starting Tonic Algo - alpha %.3f, beta = %.3f | Memory Budget = %ld\n", alpha, beta, k);
     WR_size_ = (long) (k_ * alpha);

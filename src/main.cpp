@@ -6,12 +6,15 @@
 #include <string>
 #include <chrono>
 
-void run_tonic_algo(std::string &dataset_path, TriangleSampler &algo) {
+void run_tonic_algo(std::string &dataset_path, TriangleSampler &algo, int update_steps, std::string &out_path) {
 
     std::ifstream file(dataset_path);
     std::string line;
     long n_line = 0;
     int u, v, t;
+
+    std::ofstream out_file_steps(out_path + "_evolving_stream.csv", std::ios::app);
+    std::string oracle_type_str = algo.edge_oracle_flag_ ? "Edges" : "Nodes";
 
     if (file.is_open()) {
         while (true) {
@@ -28,11 +31,22 @@ void run_tonic_algo(std::string &dataset_path, TriangleSampler &algo) {
             if (++n_line % 5000000 == 0) {
                 printf("Processed %ld edges || Estimated count T = %f\n", n_line, algo.get_global_triangles());
             }
+
+            if (update_steps > 0 && n_line % update_steps == 0) {
+                out_file_steps << "TonicINS,Alpha=" << algo.alpha_ << "-Beta=" << algo.beta_ << "," << algo.k_ << ","
+                         << oracle_type_str << "," << algo.get_global_triangles() << "," << n_line << "\n";
+            }
         }
         file.close();
     } else {
         std::cerr << "Error! Unable to open file " << dataset_path << "\n";
     }
+
+    // -- EOS
+    out_file_steps << "TonicINS,Alpha=" << algo.alpha_ << "-Beta=" << algo.beta_ << "," << algo.k_ << ","
+                   << oracle_type_str << "," << algo.get_global_triangles() << "," << n_line << "\n";
+    out_file_steps.close();
+
 }
 
 /* Use if POSIX basename() is unavailable */
@@ -138,9 +152,9 @@ int main(int argc, char **argv) {
 
     // -- Tonic Algo
     if (strcmp(project, "Tonic") == 0) {
-        if (argc != 9) {
+        if (argc < 9) {
             std::cerr << "Usage: Tonic <random_seed> <memory_budget> <alpha> <beta> "
-                         "<dataset_path> <oracle_path> <oracle_type = [nodes, edges]> <output_path>\n";
+                         "<dataset_path> <oracle_path> <oracle_type = [nodes, edges]> <output_path> [update_steps]\n";
             return 1;
         }
 
@@ -159,6 +173,11 @@ int main(int argc, char **argv) {
         std::string oracle_path(argv[6]);
         std::string oracle_type(argv[7]);
         std::string output_path(argv[8]);
+
+        int update_steps = -1;
+        if (argc == 10) {
+            update_steps = atoi(argv[9]);
+        }
 
         std::chrono::time_point start = std::chrono::high_resolution_clock::now();
         double time, time_oracle;
@@ -191,7 +210,7 @@ int main(int argc, char **argv) {
         }
 
         start = std::chrono::high_resolution_clock::now();
-        run_tonic_algo(dataset_path, tonic_algo);
+        run_tonic_algo(dataset_path, tonic_algo, update_steps, output_path);
         time = (double) ((std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::high_resolution_clock::now() - start)).count()) / 1000;
 
