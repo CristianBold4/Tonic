@@ -427,7 +427,7 @@ long Utils::run_exact_algorithm(std::string &dataset_filepath, std::string &outp
 
     // -- local triangles
     if (flag_local) {
-        std::ofstream out_file_local(output_path_local);
+        std::ofstream out_file_local(output_path_local, std::ios::app);
         for (auto &elem: local_triangles) {
             out_file_local << elem.first << " " << elem.second << "\n";
         }
