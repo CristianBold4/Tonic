@@ -240,7 +240,7 @@ int main(int argc, char **argv) {
         tonic_algo.get_local_nodes(nodes);
         for (int u: nodes) {
             double count = tonic_algo.get_local_triangles(u);
-            out_file_local << u << " " << tonic_algo.k_ << " " << std::fixed << count << "\n";
+            out_file_local << u << "," << tonic_algo.k_ << "," << std::fixed << count << "\n";
         }
         out_file_local.close();
 
