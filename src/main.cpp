@@ -229,7 +229,7 @@ int main(int argc, char **argv) {
         out_file.close();
 
         // -- local triangles
-        std::ofstream out_file_local(output_path + "_local_count.csv", std::ios::app);
+        std::ofstream out_file_local(output_path + "_local_counts.csv", std::ios::app);
         std::vector<int> nodes;
         tonic_algo.get_local_nodes(nodes);
         for (int u: nodes) {
