@@ -340,7 +340,8 @@ void Utils::build_node_oracle(std::string &filepath, double percentage_retain, s
     }
 }
 
-long Utils::run_exact_algorithm(std::string &dataset_filepath, std::string &output_path) {
+long Utils::run_exact_algorithm(std::string &dataset_filepath, std::string &output_path,
+                                bool flag_local, std::string &output_path_local) {
 
     std::ifstream file(dataset_filepath);
     std::string line, su, sv;
@@ -354,6 +355,8 @@ long Utils::run_exact_algorithm(std::string &dataset_filepath, std::string &outp
 
     // - graph
     emhash5::HashMap<int, std::unordered_set<int>> graph_stream;
+    // -- local triangles
+    emhash5::HashMap<int, int> local_triangles;
 
     int u, v, du, dv, n_min, n_max, timestamp;
     std::unordered_set<int> min_neighbors;
@@ -385,6 +388,23 @@ long Utils::run_exact_algorithm(std::string &dataset_filepath, std::string &outp
             if (graph_stream[n_max].find(neigh) != graph_stream[n_max].end()) {
                 // -- triangle {n_min, neigh, n_max} discovered
                 total_T += 1;
+
+                // -- local triangles update
+                if (local_triangles.find(neigh) != local_triangles.end())
+                    local_triangles[neigh] += 1;
+                else
+                    local_triangles[neigh] = 1;
+
+                if (local_triangles.find(n_min) != local_triangles.end())
+                    local_triangles[n_min] += 1;
+                else
+                    local_triangles[n_min] = 1;
+
+                if (local_triangles.find(n_max) != local_triangles.end())
+                    local_triangles[n_max] += 1;
+                else
+                    local_triangles[n_max] = 1;
+
             }
         }
 
@@ -404,6 +424,16 @@ long Utils::run_exact_algorithm(std::string &dataset_filepath, std::string &outp
     out_file << "Edges = " << nline << "\n";
     out_file << "Triangles = " << total_T << "\n";
     out_file.close();
+
+    // -- local triangles
+    if (flag_local) {
+        std::ofstream out_file_local(output_path_local);
+        for (auto &elem: local_triangles) {
+            out_file_local << elem.first << " " << elem.second << "\n";
+        }
+        out_file_local.close();
+    }
+
     return total_T;
 }
 

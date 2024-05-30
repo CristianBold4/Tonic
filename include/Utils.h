@@ -33,7 +33,8 @@ private:
 
 public:
 
-    static long run_exact_algorithm(std::string &dataset_filepath,  std::string &output_path);
+    static long run_exact_algorithm(std::string &dataset_filepath,  std::string &output_path,
+                                    bool flag_local, std::string &output_path_local);
 
     static bool read_node_oracle(std::string &oracle_filename, char delimiter, int skip,
                                  emhash5::HashMap<int, int> &node_oracle);
