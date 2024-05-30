@@ -101,13 +101,14 @@ int main(int argc, char **argv) {
         } else {
             std::string dataset_path(argv[1]);
             std::string output_path(argv[2]);
-            bool flag_local = false;
-            if (argc == 4) {
-                flag_local = true;
-                std::string output_path_local(argv[3]);
-            }
+            long total_T = -1;
             auto start = std::chrono::high_resolution_clock::now();
-            long total_T = Utils::run_exact_algorithm(dataset_path, output_path, flag_local, output_path_local);
+            if (argc == 4) {
+                std::string output_path_local(argv[3]);
+                total_T = Utils::run_exact_algorithm(dataset_path, output_path, true, output_path_local);
+            } else {
+                total_T = Utils::run_exact_algorithm(dataset_path, output_path, false, output_path);
+            }
             auto stop = std::chrono::high_resolution_clock::now();
             double time = (double) ((std::chrono::duration_cast<std::chrono::milliseconds>(stop - start)).count()) / 1000;
             if (total_T > -1)
