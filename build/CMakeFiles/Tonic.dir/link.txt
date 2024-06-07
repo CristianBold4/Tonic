@@ -1,1 +1,0 @@
-/usr/bin/c++  -O3 -Wall -march=native -O3 -DNDEBUG   CMakeFiles/Tonic.dir/src/main.cpp.o CMakeFiles/Tonic.dir/src/Utils.cpp.o CMakeFiles/Tonic.dir/src/TriangleSampler.cpp.o  -o Tonic 
