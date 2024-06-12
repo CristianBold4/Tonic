@@ -148,7 +148,7 @@ int main(int argc, char **argv) {
     if (strcmp(project, "RunExactAlgo") == 0) {
         if (argc != 4) {
             std::cerr << "Usage: RunExactAlgo <flag: 0: insertion-only stream, 1: fully-dynamic stream>"
-                         "<preprocessed_dataset_path> <output_path>\n";
+                         " <preprocessed_dataset_path> <output_path>\n";
             return 1;
         } else {
             int flag_fd = atoi(argv[1]);
@@ -233,7 +233,7 @@ int main(int argc, char **argv) {
     if (strcmp(project, "Tonic") == 0) {
         if (argc != 10) {
             std::cerr << "Usage: Tonic <flag: 0: insertion-only stream, 1: fully-dynamic stream>"
-                         "<random_seed> <memory_budget> <alpha> <beta> "
+                         " <random_seed> <memory_budget> <alpha> <beta> "
                          "<dataset_path> <oracle_path> <oracle_type = [nodes, edges]> <output_path>\n";
             return 1;
         }
