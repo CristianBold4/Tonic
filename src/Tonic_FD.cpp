@@ -1,5 +1,5 @@
 //
-// Created by Cristian Boldrin on 09/03/24.
+// Created by X on 09/03/24.
 //
 
 #include "Tonic_FD.h"
@@ -28,7 +28,7 @@ void Tonic_FD::WaitingRoom::add_edge(int u, int v) {
 }
 
 
-Edge Tonic_FD::WaitingRoom::pop_oldest_edge() {
+Utils::Edge Tonic_FD::WaitingRoom::pop_oldest_edge() {
     // -- erase first element without moving last
     unsigned long long oldest_edge_id = *waiting_room_.begin();
     waiting_room_.erase(oldest_edge_id);

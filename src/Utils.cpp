@@ -1,5 +1,5 @@
 //
-// Created by Cristian Boldrin on 09/03/24.
+// Created by X on 09/03/24.
 //
 
 #include "../include/Utils.h"
@@ -250,7 +250,7 @@ bool Utils::read_edge_oracle(std::string &oracle_filename, char delimiter, int s
                 int v = std::stoi(token);
                 std::getline(iss, token, delimiter);
                 int label = std::stoi(token);
-                edge_id_oracle.insert_unique(Tonic::edge_to_id(u, v), label);
+                edge_id_oracle.insert_unique(edge_to_id(u, v), label);
             }
             i++;
         }

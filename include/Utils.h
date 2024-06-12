@@ -1,7 +1,3 @@
-//
-// Created by Cristian Boldrin on 09/03/24.
-//
-
 #ifndef TONIC_UTILS_H
 #define TONIC_UTILS_H
 
@@ -30,7 +26,7 @@ public:
 
     struct hash_edge {
         size_t operator()(const std::pair<int, int> &p) const {
-            return Tonic::edge_to_id(p.first, p.second);
+            return edge_to_id(p.first, p.second);
         }
     };
 

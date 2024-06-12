@@ -1,5 +1,5 @@
 //
-// Created by Cristian Boldrin on 09/03/24.
+// Created by X on 09/03/24.
 //
 
 #ifndef TONIC_FD
@@ -17,10 +17,13 @@
 class Tonic_FD {
 
 using Heavy_edge = Utils::Heavy_edge;
+using Edge = Utils::Edge;
 
 private:
 
     class WaitingRoom {
+
+    using Edge = Utils::Edge;
 
     private:
 
