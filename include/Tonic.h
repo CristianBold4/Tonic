@@ -2,11 +2,11 @@
 // Created by Cristian Boldrin on 09/03/24.
 //
 
-#ifndef TONIC_TRIANGLESAMPLER_H
-#define TONIC_TRIANGLESAMPLER_H
+#ifndef TONIC_TONIC_H
+#define TONIC_TONIC_H
 
 #include "hash_table5.hpp"
-#include "HeavyEdgesPQ.h"
+#include "FixedSizePQ.h"
 #include <iostream>
 #include <string>
 #include <random>
@@ -15,7 +15,7 @@ using Edge = std::pair<int, int>;
 using Heavy_edge = std::pair<Edge, int>;
 
 
-class TriangleSampler {
+class Tonic {
 
 private:
 
@@ -90,9 +90,9 @@ public:
                static_cast<unsigned long long>(nv);
     }
 
-    TriangleSampler(int random_seed, long k, double alpha, double beta);
+    Tonic(int random_seed, long k, double alpha, double beta);
 
-    ~TriangleSampler();
+    ~Tonic();
 
     void set_edge_oracle(emhash5::HashMap<long, int> &edge_oracle);
 

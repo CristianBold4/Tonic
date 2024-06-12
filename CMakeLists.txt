@@ -10,37 +10,32 @@ set(CMAKE_CXX_FLAGS "-O3 -Wall -march=native")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(Tonic src/main.cpp
+add_executable(Tonic
+        src/main.cpp
         src/Utils.cpp
-        include/Utils.h
-        include/hash_table5.hpp
-        src/TriangleSampler.cpp
-        include/TriangleSampler.h
-        include/HeavyEdgesPQ.h)
+        src/Tonic.cpp
+        src/Tonic_FD.cpp
+)
 
 
-add_executable(BuildOracle src/main.cpp
-        src/Utils.cpp
-        include/Utils.h
-        include/hash_table5.hpp
-        src/TriangleSampler.cpp
-        include/TriangleSampler.h)
+add_executable(BuildOracle
+        src/main.cpp
+        src/Utils.cpp)
 
-add_executable(DataPreprocessing src/main.cpp
-        src/Utils.cpp
-        include/Utils.h
-        include/hash_table5.hpp
-        src/TriangleSampler.cpp
-        include/TriangleSampler.h)
+add_executable(DataPreprocessing
+        src/main.cpp
+        src/Utils.cpp)
 
-add_executable(RunExactAlgo src/main.cpp
-        src/Utils.cpp
-        include/Utils.h
-        include/hash_table5.hpp
-        src/TriangleSampler.cpp
-        include/TriangleSampler.h)
+add_executable(RunExactAlgo
+        src/main.cpp
+        src/Utils.cpp)
+
+add_executable(CreateFDStream
+        src/main.cpp
+        src/Utils.cpp)
 
 target_include_directories(Tonic PRIVATE include)
 target_include_directories(BuildOracle PRIVATE include)
 target_include_directories(DataPreprocessing PRIVATE include)
 target_include_directories(RunExactAlgo PRIVATE include)
+target_include_directories(CreateFDStream PRIVATE include)

@@ -4,6 +4,206 @@
 
 #include "../include/Utils.h"
 
+long Utils::run_exact_algorithm(std::string &dataset_filepath, std::string &output_path) {
+
+    std::ifstream file(dataset_filepath);
+    std::string line, su, sv;
+
+    if (!file.is_open()) {
+        std::cerr << "Error! Unable to open file " << dataset_filepath << "\n";
+        return -1;
+    }
+
+    std::cout << "Running exact algorithm...\n";
+
+    // - graph
+    emhash5::HashMap<int, std::unordered_set<int>> graph_stream;
+    // -- local triangles
+    emhash5::HashMap<int, int> local_triangles;
+
+    int u, v, du, dv, n_min, n_max, timestamp;
+    std::unordered_set<int> min_neighbors;
+
+    long total_T = 0, nline = 0;
+    // -- check self-loops
+
+    while (std::getline(file, line)) {
+        nline++;
+
+        std::istringstream iss(line);
+        iss >> u >> v >> timestamp;
+        if (u == v) continue;
+        if (graph_stream[u].find(v) != graph_stream[u].end() and graph_stream[v].find(u) != graph_stream[v].end()) {
+            continue;
+        }
+
+        // -- add edge to graph stream
+        graph_stream[u].emplace(v);
+        graph_stream[v].emplace(u);
+
+        // -- count triangles
+        du = (int) graph_stream[u].size();
+        dv = (int) graph_stream[v].size();
+        n_min = (du < dv) ? u : v;
+        n_max = (du < dv) ? v : u;
+        min_neighbors = graph_stream[n_min];
+        for (const auto &neigh: min_neighbors) {
+            if (graph_stream[n_max].find(neigh) != graph_stream[n_max].end()) {
+                // -- triangle {n_min, neigh, n_max} discovered
+                total_T += 1;
+
+            }
+        }
+
+        if (nline % 3000000 == 0) {
+            printf("Processed %ld edges | Counted %ld triangles\n", nline, total_T);
+        }
+
+
+    }
+
+    long num_nodes = (long) graph_stream.size();
+    printf("Processed dataset with n = %ld, m = %ld\n", num_nodes, nline);
+    // -- write results
+    std::ofstream out_file(output_path, std::ios::app);
+    out_file << "Ground Truth:" << "\n";
+    out_file << "Nodes = " << num_nodes << "\n";
+    out_file << "Edges = " << nline << "\n";
+    out_file << "Triangles = " << total_T << "\n";
+    out_file.close();
+
+    return total_T;
+}
+
+long Utils::run_exact_algorithm_FD(std::string &dataset_filepath, std::string &output_path) {
+
+    std::ifstream file(dataset_filepath);
+    std::string line, su, sv;
+
+    if (!file.is_open()) {
+        std::cerr << "Error! Unable to open file " << dataset_filepath << "\n";
+        return -1;
+    }
+
+    std::cout << "Running exact algorithm for fully dynamic streams...\n";
+
+    // - graph
+    emhash5::HashMap<int, std::unordered_set<int>> graph_stream;
+
+    int u, v, du, dv, n_min, n_max, timestamp, src, dst;
+    char sign;
+    std::unordered_set<int> min_neighbors;
+
+    emhash5::HashMap<unsigned long long, std::pair<int, int>> unique_edges;
+    std::unordered_set<int> unique_nodes;
+
+    long total_T = 0, nline = 0, cum_triangles = 0, num_edges = 0;
+    long max_edges = 0, time_max_edges = 0;
+
+    while (std::getline(file, line)) {
+
+
+        std::istringstream iss(line);
+        iss >> src >> dst >> timestamp >> sign;
+        u = src;
+        v = dst;
+        if (u > v) {
+            u = dst;
+            v = src;
+        }
+
+        unique_nodes.emplace(u);
+        unique_nodes.emplace(v);
+
+        // -- count triangles
+        // -- check if u and v are in graph
+        du = (int) graph_stream[u].size();
+        dv = (int) graph_stream[v].size();
+        n_min = (du < dv) ? u : v;
+        n_max = (du < dv) ? v : u;
+        min_neighbors = graph_stream[n_min];
+        cum_triangles = 0;
+
+        for (const auto &neigh: min_neighbors) {
+            if (graph_stream[n_max].find(neigh) != graph_stream[n_max].end()) {
+                // -- triangle {n_min, neigh, n_max} discovered
+                cum_triangles += 1;
+            }
+        }
+
+        // -- check if edge is addition or removal
+        if (sign == '-') {
+            total_T -= cum_triangles;
+            if (graph_stream[u].find(v) != graph_stream[u].end() and
+                graph_stream[v].find(u) != graph_stream[v].end()) {
+                num_edges--;
+                // -- remove edge from graph stream
+                graph_stream[u].erase(v);
+                graph_stream[v].erase(u);
+                // -- erase entry from map if empty
+                if (graph_stream[u].empty())
+                    graph_stream.erase(u);
+                if (graph_stream[v].empty())
+                    graph_stream.erase(v);
+            }
+        } else {
+            // -- by default, assume addition
+            total_T += cum_triangles;
+            if (graph_stream[u].find(v) == graph_stream[u].end() and
+                graph_stream[v].find(u) == graph_stream[v].end()) {
+                num_edges++;
+                // -- add edge to graph stream
+                graph_stream[u].emplace(v);
+                graph_stream[v].emplace(u);
+            }
+        }
+
+
+        // -- update unique edges count
+        if (unique_edges.find(edge_to_id(u, v)) == unique_edges.end()) {
+            if (sign == '+')
+                unique_edges[edge_to_id(u, v)] = {1, 0};
+            else
+                unique_edges[edge_to_id(u, v)] = {0, 1};
+        } else {
+            if (sign == '+')
+                unique_edges[edge_to_id(u, v)].first += 1;
+            else
+                unique_edges[edge_to_id(u, v)].second += 1;
+        }
+
+
+        if (num_edges > max_edges) {
+            max_edges = num_edges;
+            time_max_edges = nline;
+        }
+
+        nline++;
+        if (nline % 3000000 == 0) {
+            printf("Processed %ld edges | Subgraph contains: %ld edges - Counted: %ld triangles\n", nline, num_edges, total_T);
+        }
+
+    }
+
+    long num_nodes = (long) unique_nodes.size();
+    printf("Processed dataset with n = %ld, m = %ld\n", num_nodes, nline);
+    printf("Unique edges count: %ld\n", (long) unique_edges.size());
+    // -- write results
+    std::ofstream out_file(output_path, std::ios::app);
+    out_file << "Ground Truth:" << "\n";
+    out_file << "Number of Unique Nodes = " << num_nodes << "\n";
+    out_file << "Number of Nodes at the end = " << (long) graph_stream.size() << "\n";
+    out_file << "Number of Edges = " << nline << "\n";
+    out_file << "Maximum Number of Edges = " << max_edges << " at time " << time_max_edges << " in the stream\n";
+    out_file << "Number of Edges at the end = " << num_edges << "\n";
+    out_file << "Number of Unique Edges = " << (long) unique_edges.size() << "\n";
+    out_file << "Triangles = " << total_T << "\n";
+    out_file.close();
+    return total_T;
+
+}
+
+
 bool Utils::read_node_oracle(std::string &oracle_filename, char delimiter, int skip,
                              emhash5::HashMap<int, int> &node_oracle) {
 
@@ -50,7 +250,7 @@ bool Utils::read_edge_oracle(std::string &oracle_filename, char delimiter, int s
                 int v = std::stoi(token);
                 std::getline(iss, token, delimiter);
                 int label = std::stoi(token);
-                edge_id_oracle.insert_unique(TriangleSampler::edge_to_id(u, v), label);
+                edge_id_oracle.insert_unique(Tonic::edge_to_id(u, v), label);
             }
             i++;
         }
@@ -60,6 +260,282 @@ bool Utils::read_edge_oracle(std::string &oracle_filename, char delimiter, int s
         std::cerr << "Error! Unable to open file " << oracle_filename << "\n";
         return false;
     }
+
+}
+
+void Utils::preprocess_data(const std::string &dataset_filepath, std::string &delimiter, int skip,
+                            std::string &output_path) {
+
+    std::cout << "Preprocessing Dataset...\n";
+    std::ifstream file(dataset_filepath);
+    std::string line, su, sv;
+
+    // -- edge stream
+    std::unordered_map<Edge, int, hash_edge> edge_stream;
+
+    // - graph
+    std::unordered_map<int, std::unordered_set<int>> graph_stream;
+
+    int u, v, t;
+    std::unordered_set<int> min_neighbors;
+
+    if (file.is_open()) {
+
+        long nline = 0;
+        long num_nodes;
+        long num_edges = 0;
+
+        t = 0;
+        while (std::getline(file, line)) {
+            nline++;
+            if (nline <= skip) continue;
+
+            std::istringstream iss(line);
+            std::getline(iss, su, delimiter[0]);
+            std::getline(iss, sv, delimiter[0]);
+
+            u = stoi(su);
+            v = stoi(sv);
+
+            // -- check self-loops
+            if (u == v) continue;
+            t++;
+            int v1 = (u < v) ? u : v;
+            int v2 = (u < v) ? v : u;
+            std::pair uv = std::make_pair(v1, v2);
+            // -- check for multiple edges
+            if (graph_stream[u].find(v) != graph_stream[u].end() and
+                graph_stream[v].find(u) != graph_stream[v].end()) {
+                edge_stream[uv] = t;
+                continue;
+            }
+
+            // -- add edge to graph stream
+            graph_stream[u].emplace(v);
+            graph_stream[v].emplace(u);
+            num_edges++;
+            edge_stream[uv] = t;
+
+            if (nline % 3000000 == 0) {
+                std::cout << "Processed " << nline << " edges...\n";
+            }
+
+        }
+
+        // -- eof
+        num_nodes = (int) graph_stream.size();
+        printf("Preprocessed dataset with n = %ld, m = %ld\n", num_nodes, num_edges);
+        std::cout << "Sorting edge map...\n";
+        // -- create a vector that stores all the entries <K, V> of the map edge stream
+        std::vector<std::pair<Edge, int>> ordered_edge_stream(edge_stream.begin(), edge_stream.end());
+        // -- sort edge by increasing time
+        std::sort(ordered_edge_stream.begin(), ordered_edge_stream.end(),
+                  [](const std::pair<Edge, int> &a, const std::pair<Edge, int> &b) { return a.second < b.second; });
+
+        // -- write results
+        std::cout << "Done!\nWriting results...\n";
+        std::ofstream out_file(output_path);
+
+        int cnt = 0;
+        for (auto elem: ordered_edge_stream) {
+            // -- also, rescale the time (not meant for Tonic)
+            out_file << elem.first.first << " " << elem.first.second << " " << ++cnt << "\n";
+        }
+
+        out_file.close();
+
+    } else {
+        std::cerr << "DataPreprocessing - Error! Graph filepath not opened.\n";
+    }
+
+}
+
+// -- used for preprocess each snapshot of graph sequences: differs from the previous one because does not include
+// -- the final ordering of timestamps, which is done in later stages (also considering subsequent edge deletions)
+std::pair<Utils::EdgeStream, long> Utils::preprocess_data_FD(const std::string &dataset_filepath,
+                                                             std::string &delimiter, int skip,
+                                                             std::string &output_path) {
+
+    std::cout << "Preprocessing Dataset...\n";
+    std::ifstream file(dataset_filepath);
+    std::string line, su, sv;
+
+    // -- edge stream
+    EdgeStream edge_stream;
+
+    // - graph
+    std::unordered_map<int, std::unordered_set<int>> graph_stream;
+
+    int u, v;
+    long t;
+    std::unordered_set<int> min_neighbors;
+
+    if (file.is_open()) {
+
+        long nline = 0;
+        long num_nodes;
+        long num_edges = 0;
+
+        t = 0;
+        while (std::getline(file, line)) {
+            nline++;
+            if (nline <= skip) continue;
+
+            std::istringstream iss(line);
+            iss >> u >> v;
+
+            // -- check self-loops
+            if (u == v) continue;
+            int v1 = (u < v) ? u : v;
+            int v2 = (u < v) ? v : u;
+            std::pair uv = std::make_pair(v1, v2);
+            // -- check for multiple edges
+            if (graph_stream[u].find(v) != graph_stream[u].end() and
+                graph_stream[v].find(u) != graph_stream[v].end()) {
+                edge_stream[uv] = t;
+                continue;
+            }
+
+            // -- add edge to graph stream
+            graph_stream[u].emplace(v);
+            graph_stream[v].emplace(u);
+            num_edges++;
+            edge_stream[uv] = t;
+
+            t++;
+
+            if (nline % 3000000 == 0) {
+                std::cout << "Processed " << nline << " edges...\n";
+            }
+
+        }
+
+        // -- eof
+        num_nodes = (int) graph_stream.size();
+        printf("Preprocessed dataset with n = %ld, m = %ld\n", num_nodes, num_edges);
+        assert(num_edges == edge_stream.size());
+        return {edge_stream, t};
+
+    } else {
+        std::cerr << "DataPreprocessing - Error! Graph filepath not opened.\n";
+        exit(0);
+    }
+
+}
+
+void Utils::merge_snapshots_FD(std::string &folder, int n_snapshots, std::string &delimiter, int line_to_skip,
+                            std::string &output_path) {
+
+    std::vector<EdgeSigned> fd_edge_stream;
+    EdgeStream edge_additions;
+
+    // -- loop through all .txt files in the folder
+    std::vector<std::string> files;
+    for (const auto &entry : std::filesystem::directory_iterator(folder)) {
+        if (entry.path().extension() == ".txt") {
+            files.push_back(entry.path().string());
+        }
+    }
+
+    // -- sort files by name
+    std::sort(files.begin(), files.end());
+
+    int idx_snap = 0;
+    long current_timestamp = 0;
+    // -- random int distro
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+
+    for (const auto &file: files) {
+        idx_snap += 1;
+        std::cout << "Processing file #" << idx_snap << ": " << file << "\n";
+
+        if (idx_snap > n_snapshots) break;
+
+        std::string out_snap_path = file.substr(0, file.find_last_of('.')) + "_preprocessed.txt";
+        auto snap = Utils::preprocess_data_FD(file, delimiter, line_to_skip, out_snap_path);
+        EdgeStream snap_stream = snap.first;
+        long max_timestamp = snap.second;
+
+        if (idx_snap == 1) {
+            // -- first snap: let stream = G1
+            // -- add edges to fd stream
+            for (auto &edge: snap_stream) {
+                fd_edge_stream.push_back({{edge.first, edge.second}, 1});
+            }
+
+            edge_additions.merge(snap_stream);
+
+            current_timestamp = max_timestamp;
+
+
+            // -- print intermediate length of FD stream
+            std::cout << "Length of FD stream = " << fd_edge_stream.size() << "\n";
+
+        } else {
+
+            // -- idx snap > 1
+            printf("Merging %d and %d snapshots...\n", idx_snap -1, idx_snap);
+            // -- in e_a, store snap_stream \ edge_additions
+            EdgeStream e_a;
+            for (const auto &edge : snap_stream) {
+                if (edge_additions.find(edge.first) == edge_additions.end()) {
+                    e_a[edge.first] = edge.second;
+                }
+            }
+            // -- in e_d, store edge_additions \ snap_stream
+            EdgeStream e_d;
+            for (const auto &edge : edge_additions) {
+                if (snap_stream.find(edge.first) == snap_stream.end()) {
+                    e_d[edge.first] = edge.second;
+                }
+            }
+
+            printf("|Edges in merged streams| = %d\n|Edges in %d snapshot| = %d\n", (int) edge_additions.size(),
+                   idx_snap, (int) snap_stream.size());
+            printf("|Edges added| = %ld\n|Edges deleted| = %ld\n", e_a.size(), e_d.size());
+
+            // -- add to fd stream edges in e_a with 1 sign
+            for (auto &edge: e_a) {
+                long timestamp = current_timestamp + edge.second;
+                fd_edge_stream.push_back({{edge.first, timestamp}, 1});
+                edge_additions[edge.first] = timestamp;
+            }
+
+            // -- add to fd stream edges in e_d with -1 sign and random timestamps
+            std::cout << "Current timestamp: " << current_timestamp << ", Max Timestamp: " << max_timestamp << "\n";
+            std::uniform_int_distribution<long> dis(current_timestamp + 1, current_timestamp + max_timestamp);
+            for (auto &edge: e_d) {
+                long random_timestamp = dis(gen);
+                fd_edge_stream.push_back({{edge.first, random_timestamp}, -1});
+                edge_additions.erase(edge.first);
+            }
+
+            current_timestamp += max_timestamp;
+
+        }
+
+    }
+
+    // std::cout << "Max timestamp: " << current_timestamp << "\n";
+
+    // -- print length of fd_edge_stream
+    std::cout << "Length of FD stream = " << fd_edge_stream.size() << "\n";
+
+    std::cout << "Sorting and writing the final FD stream...\n";
+    std::sort(fd_edge_stream.begin(), fd_edge_stream.end(),
+              [](const EdgeSigned &a, const EdgeSigned &b) { return a.first.second < b.first.second; });
+
+    std::ofstream out_file(output_path);
+    for (auto &edge: fd_edge_stream) {
+        char sign = (edge.second == 1) ? '+' : '-';
+        out_file << edge.first.first.first << " " << edge.first.first.second << " "
+                 << edge.first.second << " " << sign << "\n";
+    }
+
+    out_file.close();
+    std::cout << "Done!\n";
 
 }
 
@@ -340,186 +816,3 @@ void Utils::build_node_oracle(std::string &filepath, double percentage_retain, s
     }
 }
 
-long Utils::run_exact_algorithm(std::string &dataset_filepath, std::string &output_path,
-                                bool flag_local, std::string &output_path_local) {
-
-    std::ifstream file(dataset_filepath);
-    std::string line, su, sv;
-
-    if (!file.is_open()) {
-        std::cerr << "Error! Unable to open file " << dataset_filepath << "\n";
-        return -1;
-    }
-
-    std::cout << "Running exact algorithm...\n";
-
-    // - graph
-    emhash5::HashMap<int, std::unordered_set<int>> graph_stream;
-    // -- local triangles
-    emhash5::HashMap<int, int> local_triangles;
-
-    int u, v, du, dv, n_min, n_max, timestamp;
-    std::unordered_set<int> min_neighbors;
-
-    long total_T = 0, nline = 0;
-    // -- check self-loops
-
-    while (std::getline(file, line)) {
-        nline++;
-
-        std::istringstream iss(line);
-        iss >> u >> v >> timestamp;
-        if (u == v) continue;
-        if (graph_stream[u].find(v) != graph_stream[u].end() and graph_stream[v].find(u) != graph_stream[v].end()) {
-            continue;
-        }
-
-        // -- add edge to graph stream
-        graph_stream[u].emplace(v);
-        graph_stream[v].emplace(u);
-
-        // -- count triangles
-        du = (int) graph_stream[u].size();
-        dv = (int) graph_stream[v].size();
-        n_min = (du < dv) ? u : v;
-        n_max = (du < dv) ? v : u;
-        min_neighbors = graph_stream[n_min];
-        for (const auto &neigh: min_neighbors) {
-            if (graph_stream[n_max].find(neigh) != graph_stream[n_max].end()) {
-                // -- triangle {n_min, neigh, n_max} discovered
-                total_T += 1;
-
-                // -- local triangles update
-                if (local_triangles.find(neigh) != local_triangles.end())
-                    local_triangles[neigh] += 1;
-                else
-                    local_triangles[neigh] = 1;
-
-                if (local_triangles.find(n_min) != local_triangles.end())
-                    local_triangles[n_min] += 1;
-                else
-                    local_triangles[n_min] = 1;
-
-                if (local_triangles.find(n_max) != local_triangles.end())
-                    local_triangles[n_max] += 1;
-                else
-                    local_triangles[n_max] = 1;
-
-            }
-        }
-
-        if (nline % 3000000 == 0) {
-            printf("Processed %ld edges | Counted %ld triangles\n", nline, total_T);
-        }
-
-
-    }
-
-    long num_nodes = (long) graph_stream.size();
-    printf("Processed dataset with n = %ld, m = %ld\n", num_nodes, nline);
-    // -- write results
-    std::ofstream out_file(output_path, std::ios::app);
-    out_file << "Ground Truth:" << "\n";
-    out_file << "Nodes = " << num_nodes << "\n";
-    out_file << "Edges = " << nline << "\n";
-    out_file << "Triangles = " << total_T << "\n";
-    out_file.close();
-
-    // -- local triangles
-    if (flag_local) {
-        std::ofstream out_file_local(output_path_local, std::ios::app);
-        for (auto &elem: local_triangles) {
-            out_file_local << elem.first << "," << elem.second << "\n";
-        }
-        out_file_local.close();
-    }
-
-    return total_T;
-}
-
-void Utils::preprocess_data(const std::string &dataset_filepath, std::string &delimiter, int skip,
-                            std::string &output_path) {
-
-    std::cout << "Preprocessing Dataset...\n";
-    std::ifstream file(dataset_filepath);
-    std::string line, su, sv;
-
-    // -- edge stream
-    std::unordered_map<Edge, int, hash_edge> edge_stream;
-
-    // - graph
-    std::unordered_map<int, std::unordered_set<int>> graph_stream;
-
-    int u, v, t;
-    std::unordered_set<int> min_neighbors;
-
-    if (file.is_open()) {
-
-        long nline = 0;
-        long num_nodes;
-        long num_edges = 0;
-
-        t = 0;
-        while (std::getline(file, line)) {
-            nline++;
-            if (nline <= skip) continue;
-
-            std::istringstream iss(line);
-            std::getline(iss, su, delimiter[0]);
-            std::getline(iss, sv, delimiter[0]);
-
-            u = stoi(su);
-            v = stoi(sv);
-
-            // -- check self-loops
-            if (u == v) continue;
-            t++;
-            int v1 = (u < v) ? u : v;
-            int v2 = (u < v) ? v : u;
-            std::pair uv = std::make_pair(v1, v2);
-            // -- check for multiple edges
-            if (graph_stream[u].find(v) != graph_stream[u].end() and
-                graph_stream[v].find(u) != graph_stream[v].end()) {
-                edge_stream[uv] = t;
-                continue;
-            }
-
-            // -- add edge to graph stream
-            graph_stream[u].emplace(v);
-            graph_stream[v].emplace(u);
-            num_edges++;
-            edge_stream[uv] = t;
-
-            if (nline % 3000000 == 0) {
-                std::cout << "Processed " << nline << " edges...\n";
-            }
-
-        }
-
-        // -- eof
-        num_nodes = (int) graph_stream.size();
-        printf("Preprocessed dataset with n = %ld, m = %ld\n", num_nodes, num_edges);
-        std::cout << "Sorting edge map...\n";
-        // -- create a vector that stores all the entries <K, V> of the map edge stream
-        std::vector<std::pair<Edge, int>> ordered_edge_stream(edge_stream.begin(), edge_stream.end());
-        // -- sort edge by increasing time
-        std::sort(ordered_edge_stream.begin(), ordered_edge_stream.end(),
-                  [](const std::pair<Edge, int> &a, const std::pair<Edge, int> &b) { return a.second < b.second; });
-
-        // -- write results
-        std::cout << "Done!\nWriting results...\n";
-        std::ofstream out_file(output_path);
-
-        int cnt = 0;
-        for (auto elem: ordered_edge_stream) {
-            // -- also, rescale the time (not meant for Tonic)
-            out_file << elem.first.first << " " << elem.first.second << " " << ++cnt << "\n";
-        }
-
-        out_file.close();
-
-    } else {
-        std::cerr << "DataPreprocessing - Error! Graph filepath not opened.\n";
-    }
-
-}

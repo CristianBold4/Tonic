@@ -1,19 +1,19 @@
 #include <iostream>
 #include "hash_table5.hpp"
-#include "TriangleSampler.h"
+#include "Tonic.h"
+#include "Tonic_FD.h"
 #include "Utils.h"
 #include <fstream>
 #include <string>
 #include <chrono>
 
-void run_tonic_algo(std::string &dataset_path, TriangleSampler &algo, int update_steps, std::string &out_path) {
+void run_tonic_algo(std::string &dataset_path, Tonic &algo) {
 
     std::ifstream file(dataset_path);
     std::string line;
     long n_line = 0;
     int u, v, t;
 
-    std::ofstream out_file_steps(out_path + "_evolving_stream.csv", std::ios::app);
     std::string oracle_type_str = algo.edge_oracle_flag_ ? "Edges" : "Nodes";
 
     if (file.is_open()) {
@@ -32,24 +32,74 @@ void run_tonic_algo(std::string &dataset_path, TriangleSampler &algo, int update
                 printf("Processed %ld edges || Estimated count T = %f\n", n_line, algo.get_global_triangles());
             }
 
-            if (update_steps > 0 && n_line % update_steps == 0) {
-                out_file_steps << "TonicINS,Alpha=" << algo.alpha_ << "-Beta=" << algo.beta_ << "," << algo.k_ << ","
-                         << oracle_type_str << "," << algo.get_global_triangles() << "," << n_line << "\n";
-            }
         }
         file.close();
     } else {
         std::cerr << "Error! Unable to open file " << dataset_path << "\n";
     }
 
-    // -- EOS
-    out_file_steps << "TonicINS,Alpha=" << algo.alpha_ << "-Beta=" << algo.beta_ << "," << algo.k_ << ","
-                   << oracle_type_str << "," << algo.get_global_triangles() << "," << n_line << "\n";
-    out_file_steps.close();
 
 }
 
-/* Use if POSIX basename() is unavailable */
+void run_tonic_algo_FD(std::string &dataset_path, Tonic_FD &algo) {
+
+    std::ifstream file(dataset_path);
+    std::string line;
+    long n_line = 0;
+    int u, v, t, sign;
+    char sign_char;
+    std::string oracle_type_str = algo.edge_oracle_flag_ ? "Edges" : "Nodes";
+
+
+    if (file.is_open()) {
+        while (true) {
+            if (!std::getline(file, line)) break;
+            std::istringstream iss(line);
+            std::string token;
+            std::getline(iss, token, ' ');
+            u = std::stoi(token);
+            std::getline(iss, token, ' ');
+            v = std::stoi(token);
+            std::getline(iss, token, ' ');
+            t = std::stoi(token);
+            std::getline(iss, token, ' ');
+            sign_char = token[0];
+            // -- by default, assume additions
+            sign = sign_char == '-' ? -1 : 1;
+
+            algo.process_edge(u, v, t, sign);
+            if (++n_line % 5000000 == 0) {
+                printf("Processed %ld edges || Estimated count T = %f\n", n_line, algo.get_global_triangles());
+            }
+
+        }
+
+        file.close();
+
+    } else {
+        std::cerr << "Error! Unable to open file " << dataset_path << "\n";
+    }
+
+}
+
+void write_results(std::string name, double estimated_T, double time, std::string& output_path, bool edge_oracle_flag,
+                    double alpha, double beta, long memory_budget, int size_oracle,
+                    double time_oracle) {
+    printf("%s Algo successfully run in time %.3f! Estimated count T = %f\n", name.c_str(), time, estimated_T);
+    // -- write results
+    // -- global estimates
+    std::ofstream out_file(output_path + "_global_count.csv", std::ios::app);
+    std::string oracle_type_str = edge_oracle_flag ? "Edges" : "Nodes";
+
+    out_file << "Algo,Params,Oracle,SizeOracle,TimeOracle,MemEdges,GlobalTriangleCount,Time\n";
+    out_file << name.c_str() << ",Alpha=" << alpha << "-Beta=" << beta << "," << oracle_type_str << "," << size_oracle
+             << "," << time_oracle << "," << memory_budget << "," << std::fixed << estimated_T << "," << time << "\n";
+
+    out_file.close();
+
+}
+
+// -- get the base name of the executable
 char *base_name(char *s)
 {
     char *start;
@@ -74,6 +124,7 @@ int main(int argc, char **argv) {
 
     char* project = base_name(argv[0]);
 
+    // -- data preprocessing
     if (strcmp(project, "DataPreprocessing") == 0) {
         if (argc != 5) {
             std::cerr << "Usage: DataPreprocessing <dataset_path> <delimiter> <skip>"
@@ -95,24 +146,25 @@ int main(int argc, char **argv) {
 
     // -- run exact
     if (strcmp(project, "RunExactAlgo") == 0) {
-        if (argc < 3 or argc > 5) {
-            std::cerr << "Usage: RunExactAlgo <preprocessed_dataset_path> <output_path> [output_local_triangles]\n";
+        if (argc != 4) {
+            std::cerr << "Usage: RunExactAlgo <flag: 0: insertion-only stream, 1: fully-dynamic stream>"
+                         "<preprocessed_dataset_path> <output_path>\n";
             return 1;
         } else {
-            std::string dataset_path(argv[1]);
-            std::string output_path(argv[2]);
-            long total_T = -1;
+            int flag_fd = atoi(argv[1]);
+            assert(flag_fd == 0 or flag_fd == 1);
+            std::string dataset_path(argv[2]);
+            std::string output_path(argv[3]);
             auto start = std::chrono::high_resolution_clock::now();
-            if (argc == 4) {
-                std::string output_path_local(argv[3]);
-                total_T = Utils::run_exact_algorithm(dataset_path, output_path, true, output_path_local);
-            } else {
-                total_T = Utils::run_exact_algorithm(dataset_path, output_path, false, output_path);
-            }
+            long total_T;
+            if (flag_fd == 1)
+                total_T = Utils::run_exact_algorithm_FD(dataset_path, output_path);
+            else
+                total_T = Utils::run_exact_algorithm(dataset_path, output_path);
+
             auto stop = std::chrono::high_resolution_clock::now();
             double time = (double) ((std::chrono::duration_cast<std::chrono::milliseconds>(stop - start)).count()) / 1000;
-            if (total_T > -1)
-                printf("Exact Algorithm successfully run in time %.3f! Total count T = %ld\n", time, total_T);
+            printf("Exact Algorithm successfully run in time %.3f! Total count T = %ld\n", time, total_T);
             return 0;
         }
     }
@@ -156,94 +208,111 @@ int main(int argc, char **argv) {
         }
     }
 
+    // -- create FD stream
+    if (strcmp(project, "CreateFDStream") == 0) {
+        if (argc != 6) {
+            std::cerr << "Usage: CreateFDStream <snapshots_folder> <n_snapshots> <delimiter> <skip>"
+                         " <output_path>\n";
+            return 1;
+        } else {
+            std::string snapshots_folder(argv[1]);
+            int n_snapshots = atoi(argv[2]);
+            std::string delimiter (argv[3]);
+            int skip = atoi(argv[4]);
+            std::string output_path(argv[5]);
+            auto start = std::chrono::high_resolution_clock::now();
+            Utils::merge_snapshots_FD(snapshots_folder, n_snapshots, delimiter, skip, output_path);
+            auto stop = std::chrono::high_resolution_clock::now();
+            double time = (double) ((std::chrono::duration_cast<std::chrono::milliseconds>(stop - start)).count()) / 1000;
+            std::cout << "Snapshots folder " << snapshots_folder << " merged in time: " << time << " s\n";
+            return 0;
+        }
+    }
+
     // -- Tonic Algo
     if (strcmp(project, "Tonic") == 0) {
-        if (argc < 9) {
-            std::cerr << "Usage: Tonic <random_seed> <memory_budget> <alpha> <beta> "
-                         "<dataset_path> <oracle_path> <oracle_type = [nodes, edges]> <output_path> [update_steps]\n";
+        if (argc != 10) {
+            std::cerr << "Usage: Tonic <flag: 0: insertion-only stream, 1: fully-dynamic stream>"
+                         "<random_seed> <memory_budget> <alpha> <beta> "
+                         "<dataset_path> <oracle_path> <oracle_type = [nodes, edges]> <output_path>\n";
             return 1;
         }
 
         // -- read arguments
-        int random_seed = atoi(argv[1]);
-        long memory_budget = atol(argv[2]);
-        double alpha = atof(argv[3]);
-        double beta = atof(argv[4]);
+        int flag_fd = atoi(argv[1]);
+        assert(flag_fd == 0 or flag_fd == 1);
+        int random_seed = atoi(argv[2]);
+        long memory_budget = atol(argv[3]);
+        double alpha = atof(argv[4]);
+        double beta = atof(argv[5]);
         // -- assert alpha, beta in (0, 1)
         if (alpha <= 0 or alpha >= 1 or beta <= 0 or beta >= 1) {
             std::cerr << "Error! Alpha and Beta must be in (0, 1)\n";
             return 1;
         }
 
-        std::string dataset_path(argv[5]);
-        std::string oracle_path(argv[6]);
-        std::string oracle_type(argv[7]);
-        std::string output_path(argv[8]);
-
-        int update_steps = -1;
-        if (argc == 10) {
-            update_steps = atoi(argv[9]);
-        }
+        std::string dataset_path(argv[6]);
+        std::string oracle_path(argv[7]);
+        std::string oracle_type(argv[8]);
+        std::string output_path(argv[9]);
 
         std::chrono::time_point start = std::chrono::high_resolution_clock::now();
         double time, time_oracle;
         bool edge_oracle_flag = false;
-        TriangleSampler tonic_algo(random_seed, memory_budget, alpha, beta);
         int size_oracle;
-
+        emhash5::HashMap<int, int> node_oracle;
+        emhash5::HashMap<long, int> edge_oracle;
         if (oracle_type == "nodes") {
-            emhash5::HashMap<int, int> node_oracle;
             if (!Utils::read_node_oracle(oracle_path, ' ', 0, node_oracle)) return 1;
             time_oracle = (double) ((std::chrono::duration_cast<std::chrono::milliseconds>(
                     std::chrono::high_resolution_clock::now() - start)).count()) / 1000;
             printf("Node Oracle successfully read in time %.3f! Size of the oracle = %d nodes\n",
                    time_oracle, node_oracle.size());
             size_oracle = (int) node_oracle.size();
-            tonic_algo.set_node_oracle(node_oracle);
         } else if (oracle_type == "edges") {
             edge_oracle_flag = true;
-            emhash5::HashMap<long, int> edge_oracle;
             if (!Utils::read_edge_oracle(oracle_path, ' ', 0, edge_oracle)) return 1;
             time_oracle = (double) ((std::chrono::duration_cast<std::chrono::milliseconds>(
                     std::chrono::high_resolution_clock::now() - start)).count()) / 1000;
             printf("Edge Oracle successfully read in time %.3f! Size of the oracle = %d edges\n",
                    time_oracle, edge_oracle.size());
             size_oracle = (int) edge_oracle.size();
-            tonic_algo.set_edge_oracle(edge_oracle);
         } else {
             std::cerr << "Error! Oracle type must be nodes or edges\n";
             return 1;
         }
+        if (flag_fd == 1) {
+            Tonic_FD tonic_FD_algo(random_seed, memory_budget, alpha, beta);
+            if (edge_oracle_flag)
+                tonic_FD_algo.set_edge_oracle(edge_oracle);
+            else
+                tonic_FD_algo.set_node_oracle(node_oracle);
 
-        start = std::chrono::high_resolution_clock::now();
-        run_tonic_algo(dataset_path, tonic_algo, update_steps, output_path);
-        time = (double) ((std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::high_resolution_clock::now() - start)).count()) / 1000;
+            start = std::chrono::high_resolution_clock::now();
+            run_tonic_algo_FD(dataset_path, tonic_FD_algo);
+            time = (double) ((std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::high_resolution_clock::now() - start)).count()) / 1000;
 
-        // -- print results
-        printf("Tonic Algo successfully run in time %.3f! Estimated count T = %f\n", time,
-               tonic_algo.get_global_triangles());
-        // -- write results
-        // -- global estimates
-        std::ofstream out_file(output_path + "_global_count.csv", std::ios::app);
-        std::string oracle_type_str = edge_oracle_flag ? "Edges" : "Nodes";
+            write_results(std::string("TonicFD"), tonic_FD_algo.get_global_triangles(), time,
+                          output_path, edge_oracle_flag, alpha, beta, memory_budget, size_oracle, time_oracle);
 
-        //out_file << "Algo,Params,Oracle,SizeOracle,TimeOracle,MemEdges,GlobalTriangleCount,Time\n";
-        out_file << "TonicINS,Alpha=" << alpha << "-Beta=" << beta << "," << oracle_type_str << "," << size_oracle << ","
-                 << time_oracle << "," << memory_budget << "," << tonic_algo.get_global_triangles() << "," << time << "\n";
 
-        out_file.close();
+        } else {
+            Tonic tonic_algo(random_seed, memory_budget, alpha, beta);
+            if (edge_oracle_flag)
+                tonic_algo.set_edge_oracle(edge_oracle);
+            else
+                tonic_algo.set_node_oracle(node_oracle);
 
-        // -- local triangles
-        std::ofstream out_file_local(output_path + "_local_counts.csv", std::ios::app);
-        std::vector<int> nodes;
-        tonic_algo.get_local_nodes(nodes);
-        for (int u: nodes) {
-            double count = tonic_algo.get_local_triangles(u);
-            out_file_local << u << "," << tonic_algo.k_ << "," << std::fixed << count << "\n";
+            start = std::chrono::high_resolution_clock::now();
+            run_tonic_algo(dataset_path, tonic_algo);
+            time = (double) ((std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::high_resolution_clock::now() - start)).count()) / 1000;
+
+            write_results(std::string("TonicINS"), tonic_algo.get_global_triangles(), time,
+                          output_path, edge_oracle_flag, alpha, beta, memory_budget, size_oracle, time_oracle);
+
         }
-        out_file_local.close();
-
         std::cout << "Done!\n";
         return 0;
     }
@@ -251,3 +320,5 @@ int main(int argc, char **argv) {
     return 1;
 
 }
+
+

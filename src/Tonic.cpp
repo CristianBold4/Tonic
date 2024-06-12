@@ -2,10 +2,10 @@
 // Created by Cristian Boldrin on 09/03/24.
 //
 
-#include "TriangleSampler.h"
+#include "Tonic.h"
 
-TriangleSampler::TriangleSampler(int random_seed, long k, double alpha, double beta) : t_(0), k_(k), alpha_(alpha),
-                                                                                       beta_(beta)  {
+Tonic::Tonic(int random_seed, long k, double alpha, double beta) : t_(0), k_(k), alpha_(alpha),
+                                                                   beta_(beta)  {
 
     printf("Starting Tonic Algo - alpha %.3f, beta = %.3f | Memory Budget = %ld\n", alpha, beta, k);
     WR_size_ = (long) (k_ * alpha);
@@ -23,22 +23,22 @@ TriangleSampler::TriangleSampler(int random_seed, long k, double alpha, double b
 }
 
 
-TriangleSampler::~TriangleSampler() {
+Tonic::~Tonic() {
     delete[] waiting_room_;
     delete[] light_edges_sample_;
     subgraph_.clear();
 }
 
-void TriangleSampler::set_edge_oracle(emhash5::HashMap<long, int> &edge_oracle) {
+void Tonic::set_edge_oracle(emhash5::HashMap<long, int> &edge_oracle) {
     edge_id_oracle_ = edge_oracle;
     edge_oracle_flag_ = true;
 }
 
-void TriangleSampler::set_node_oracle(emhash5::HashMap<int, int> &node_oracle) {
+void Tonic::set_node_oracle(emhash5::HashMap<int, int> &node_oracle) {
     node_oracle_ = node_oracle;
 }
 
-int TriangleSampler::get_heaviness(const int u, const int v) {
+int Tonic::get_heaviness(const int u, const int v) {
     if (edge_oracle_flag_) {
         auto id_it = edge_id_oracle_.find(edge_to_id(u, v));
         if (id_it != edge_id_oracle_.end()) {
@@ -58,7 +58,7 @@ int TriangleSampler::get_heaviness(const int u, const int v) {
     }
 }
 
-inline double TriangleSampler::next_double() {
+inline double Tonic::next_double() {
     return dis_(gen_);
     // -- manual generator as numpy mt
 //    int a = gen_() >> 5;
@@ -66,50 +66,50 @@ inline double TriangleSampler::next_double() {
 //    return (a * 67108864.0 + b) / 9007199254740992.0;
 }
 
-int TriangleSampler::get_num_nodes() const {
+int Tonic::get_num_nodes() const {
     return (int) subgraph_.size();
 }
 
-int TriangleSampler::get_num_edges() const {
+int Tonic::get_num_edges() const {
     return num_edges_;
 }
 
-void TriangleSampler::get_nodes(std::vector<int> &nodes) const {
+void Tonic::get_nodes(std::vector<int> &nodes) const {
     nodes.clear();
     for (const auto &it: subgraph_) {
         nodes.push_back(it.first);
     }
 }
 
-void TriangleSampler::get_local_nodes(std::vector<int> &nodes) const {
+void Tonic::get_local_nodes(std::vector<int> &nodes) const {
     nodes.clear();
     for (const auto &it: local_triangles_cnt_) {
         nodes.push_back(it.first);
     }
 }
 
-void TriangleSampler::add_edge(const int u, const int v, bool det) {
+void Tonic::add_edge(const int u, const int v, bool det) {
     num_edges_++;
     subgraph_[u].emplace_unique(v, det);
     subgraph_[v].emplace_unique(u, det);
 
 }
 
-void TriangleSampler::remove_edge(const int u, const int v) {
+void Tonic::remove_edge(const int u, const int v) {
     num_edges_--;
     subgraph_[u].erase(v);
     subgraph_[v].erase(u);
 }
 
-inline unsigned long long TriangleSampler::get_edges_processed() const {
+inline unsigned long long Tonic::get_edges_processed() const {
     return t_;
 }
 
-double TriangleSampler::get_global_triangles() const {
+double Tonic::get_global_triangles() const {
     return global_triangles_cnt_;
 }
 
-double TriangleSampler::get_local_triangles(const int u) const {
+double Tonic::get_local_triangles(const int u) const {
     auto u_it = local_triangles_cnt_.find(u);
     if (u_it != local_triangles_cnt_.end()) {
         return u_it->second;
@@ -118,7 +118,7 @@ double TriangleSampler::get_local_triangles(const int u) const {
     }
 }
 
-void TriangleSampler::count_triangles(const int src, const int dst) {
+void Tonic::count_triangles(const int src, const int dst) {
     emhash5::HashMap<int, bool> *u_neighs, *v_neighs;
     auto u_it = subgraph_.find(src);
     if (u_it == subgraph_.end()) {
@@ -191,7 +191,7 @@ void TriangleSampler::count_triangles(const int src, const int dst) {
     }
 }
 
-bool TriangleSampler::sample_edge(const int src, const int dst) {
+bool Tonic::sample_edge(const int src, const int dst) {
 
     int u = src;
     int v = dst;
@@ -279,7 +279,7 @@ bool TriangleSampler::sample_edge(const int src, const int dst) {
     }
 }
 
-void TriangleSampler::process_edge(const int u, const int v) {
+void Tonic::process_edge(const int u, const int v) {
     count_triangles(u, v);
     bool is_det = sample_edge(u, v);
     add_edge(u, v, is_det);
