@@ -6,13 +6,13 @@
 #define TONIC_UTILS_H
 
 #include "hash_table5.hpp"
-#include "Tonic.h"
 #include <iostream>
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <unordered_set>
-
+#include <filesystem>
+#include <random>
 
 
 class Utils {
