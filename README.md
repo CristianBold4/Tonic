@@ -51,7 +51,6 @@ meaning that the topology betweeen each graph is only slightly varying in terms 
 | Dataset | Number of Graphs | Description | Max Nodes | Max Edges | Max Triangles |
 | ------- | -------------------------- | ----------- | ---------------- | ---------------- | -------------------- |
 | <a href=https://snap.stanford.edu/data/Oregon-1.html>Autonomous systems - Oregon-1</a> | 9 | 9 graphs of Autonomous Systems (AS) peering information inferred from Oregon route-views between March 31 2001 and May 26 2001 | 11k | 23k | 19k |
-| <a href=https://snap.stanford.edu/data/Oregon-2.html>Autonomous systems - Oregon-2</a> | 9 | Oregon 1 dataset, looking glass data, and Routing registry, all combined | 11k | 32k | 89k |
 | <a href=https://snap.stanford.edu/data/as-caida.html>CAIDA AS Relationships Datasets</a> | 122 | <a href=http://www.caida.org/data/active/as-relationships/.> CAIDA AS </a> graphs, derived from a set of RouteViews BGP table snapshots, from January 2004 to November 2007 | 26k | 106k | 36k | 
 | <a href=https://snap.stanford.edu/data/as-733.html>Autonomous systems AS-733</a> | 733 | 733 Daily instances which span an interval of 785 days from November 8 1997 to January 2 2000, from the BGP logs | 6k | 13k | 6k |
 
