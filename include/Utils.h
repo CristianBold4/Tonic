@@ -51,7 +51,7 @@ public:
                                 int skip, std::string &output_path);
 
     static std::pair<EdgeStream, long> preprocess_data_FD(const std::string &dataset_path, std::string &delimiter,
-                                                       int skip, std::string &output_path);
+                                                       int skip);
 
     static void merge_snapshots_FD(std::string &filepath, int n_snapshots, std::string &delimiter, int line_to_skip,
                                    std::string &output_path);

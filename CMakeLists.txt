@@ -21,20 +21,20 @@ add_executable(Tonic
 add_executable(BuildOracle
         src/main.cpp
         src/Utils.cpp
-	src/Tonic.cpp
-	src/Tonic_FD.cpp)
+		src/Tonic.cpp
+		src/Tonic_FD.cpp)
 
 add_executable(DataPreprocessing
         src/main.cpp
         src/Utils.cpp
-	src/Tonic.cpp
-	src/Tonic_FD.cpp)
+		src/Tonic.cpp
+		src/Tonic_FD.cpp)
 
 add_executable(RunExactAlgo
         src/main.cpp
-	src/Tonic.cpp
-	src/Tonic_FD.cpp
-	src/Utils.cpp)
+		src/Tonic.cpp
+		src/Tonic_FD.cpp
+		src/Utils.cpp)
 
 add_executable(CreateFDStream
         src/main.cpp

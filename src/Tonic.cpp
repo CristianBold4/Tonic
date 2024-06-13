@@ -4,6 +4,13 @@
 
 #include "Tonic.h"
 
+/**
+ * Constructor for Tonic - insertion only algorithm
+ * @param random_seed
+ * @param k memory budget
+ * @param alpha
+ * @param beta
+ */
 Tonic::Tonic(int random_seed, long k, double alpha, double beta) : t_(0), k_(k), alpha_(alpha),
                                                                    beta_(beta)  {
 
@@ -23,21 +30,38 @@ Tonic::Tonic(int random_seed, long k, double alpha, double beta) : t_(0), k_(k),
 }
 
 
+/**
+ * Destructor for Tonic
+ */
 Tonic::~Tonic() {
     delete[] waiting_room_;
     delete[] light_edges_sample_;
     subgraph_.clear();
 }
 
+/**
+ * Set the edge oracle for Tonic
+ * @param edge_oracle
+ */
 void Tonic::set_edge_oracle(emhash5::HashMap<long, int> &edge_oracle) {
     edge_id_oracle_ = edge_oracle;
     edge_oracle_flag_ = true;
 }
 
+/**
+ * Set the node oracle for Tonic
+ * @param node_oracle
+ */
 void Tonic::set_node_oracle(emhash5::HashMap<int, int> &node_oracle) {
     node_oracle_ = node_oracle;
 }
 
+/**
+* Return heaviness prediction from the node or edge oracle given the current edge (u, v)
+ * @param u
+ * @param v
+ * @return heaviness if the edge or both nodes are found in the predictor, -1 otherwise
+ */
 int Tonic::get_heaviness(const int u, const int v) {
     if (edge_oracle_flag_) {
         auto id_it = edge_id_oracle_.find(edge_to_id(u, v));
@@ -58,22 +82,34 @@ int Tonic::get_heaviness(const int u, const int v) {
     }
 }
 
+/**
+ * Generate a random double between 0 and 1
+ * @return random double
+ */
 inline double Tonic::next_double() {
     return dis_(gen_);
-    // -- manual generator as numpy mt
-//    int a = gen_() >> 5;
-//    int b = gen_() >> 6;
-//    return (a * 67108864.0 + b) / 9007199254740992.0;
 }
 
+/**
+ * Return the number of nodes in the subgraph
+ * @return number of nodes
+ */
 int Tonic::get_num_nodes() const {
     return (int) subgraph_.size();
 }
 
+/**
+ * Return the number of edges in the subgraph
+ * @return number of edges
+ */
 int Tonic::get_num_edges() const {
     return num_edges_;
 }
 
+/**
+ * Return the nodes in the subgraph
+ * @param nodes to fill
+ */
 void Tonic::get_nodes(std::vector<int> &nodes) const {
     nodes.clear();
     for (const auto &it: subgraph_) {
@@ -81,6 +117,10 @@ void Tonic::get_nodes(std::vector<int> &nodes) const {
     }
 }
 
+/**
+ * Return the local nodes in the subgraph
+ * @param nodes to fill
+ */
 void Tonic::get_local_nodes(std::vector<int> &nodes) const {
     nodes.clear();
     for (const auto &it: local_triangles_cnt_) {
@@ -88,6 +128,12 @@ void Tonic::get_local_nodes(std::vector<int> &nodes) const {
     }
 }
 
+/**
+ * Function that adds an edge (u, v) to the subgraph
+ * @param u
+ * @param v
+ * @param det true if the edge to be inserted is deterministic (heavy or WR), false otherwise (light, in SL)
+ */
 void Tonic::add_edge(const int u, const int v, bool det) {
     num_edges_++;
     subgraph_[u].emplace_unique(v, det);
@@ -95,20 +141,38 @@ void Tonic::add_edge(const int u, const int v, bool det) {
 
 }
 
+/**
+ * Function that removes an edge (u, v) from the subgraph
+ * @param u
+ * @param v
+ */
 void Tonic::remove_edge(const int u, const int v) {
     num_edges_--;
     subgraph_[u].erase(v);
     subgraph_[v].erase(u);
 }
 
+/**
+ * Function that return the current timestamp in the stream
+ * @return current timestamp
+ */
 inline unsigned long long Tonic::get_edges_processed() const {
     return t_;
 }
 
+/**
+ * Function that returns the global triangle count
+ * @return the global triangle count
+ */
 double Tonic::get_global_triangles() const {
     return global_triangles_cnt_;
 }
 
+/**
+ * Function that returns the local triangle count for a node u
+ * @param u
+ * @return the local triangle count for node u
+ */
 double Tonic::get_local_triangles(const int u) const {
     auto u_it = local_triangles_cnt_.find(u);
     if (u_it != local_triangles_cnt_.end()) {
@@ -118,6 +182,12 @@ double Tonic::get_local_triangles(const int u) const {
     }
 }
 
+/**
+ * Function that counts the triangles closed by the current edge (src, dst). The function is called before the edge is
+ * sampled.
+ * @param src
+ * @param dst
+ */
 void Tonic::count_triangles(const int src, const int dst) {
     emhash5::HashMap<int, bool> *u_neighs, *v_neighs;
     auto u_it = subgraph_.find(src);
@@ -146,6 +216,7 @@ void Tonic::count_triangles(const int src, const int dst) {
 
     double cum_cnt = 0.0;
 
+    // -- iterate over the neighbors of u
     for (const auto &it: *u_neighs) {
         int w = it.first;
         auto vw_it = v_neighs->find(w);
@@ -191,6 +262,11 @@ void Tonic::count_triangles(const int src, const int dst) {
     }
 }
 
+/**
+ * Function that samples an edge (u, v) from the stream in the correct sets W, H or SL.
+ * @param u
+ * @param v
+ */
 bool Tonic::sample_edge(const int src, const int dst) {
 
     int u = src;
@@ -279,6 +355,12 @@ bool Tonic::sample_edge(const int src, const int dst) {
     }
 }
 
+/**
+ * Function that processes an edge (src, dst). First performs the count of triangles, then samples the edge accordingly.
+ * deletions
+ * @param src
+ * @param dst
+ */
 void Tonic::process_edge(const int u, const int v) {
     count_triangles(u, v);
     bool is_det = sample_edge(u, v);

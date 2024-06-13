@@ -4,18 +4,25 @@
 
 #include "Tonic_FD.h"
 
-// -- Waiting Room for TonicFD
+/**
+ * Constructor for the WaitingRoom class used in Tonic_FD
+ * @param max_size corresponding to k(alpha) in the paper
+ */
 Tonic_FD::WaitingRoom::WaitingRoom(long max_size) : max_size_(max_size), cur_size_(0), oldest_edge_idx_(0) {
     waiting_room_ = emhash8::HashSet<unsigned long long>(max_size);
-    oldest_edge_idx_ = 0;
-    cur_size_ = 0;
 }
 
-
-Tonic_FD::WaitingRoom::WaitingRoom() : max_size_(0), cur_size_(0), oldest_edge_idx_(0) {}
-
+/**
+ * Destructor for the WaitingRoom class
+ */
 Tonic_FD::WaitingRoom::~WaitingRoom() { waiting_room_.clear();}
 
+/**
+ * Convert an edge (u, v) to a unique id and insert the id into the waiting room. If the maximum size is not reached,
+ * increment the current size.
+ * @param u
+ * @param v
+ */
 void Tonic_FD::WaitingRoom::add_edge(int u, int v) {
 
     unsigned long long edge_id = (long) edge_to_wr_id(u, v);
@@ -27,14 +34,22 @@ void Tonic_FD::WaitingRoom::add_edge(int u, int v) {
 
 }
 
-
+/**
+ * Pop the oldest edge from the waiting room, converts the id back to the edge, and return it
+ * @return the popped oldest edge
+ */
 Utils::Edge Tonic_FD::WaitingRoom::pop_oldest_edge() {
-    // -- erase first element without moving last
     unsigned long long oldest_edge_id = *waiting_room_.begin();
     waiting_room_.erase(oldest_edge_id);
     return edge_wr_to_id(oldest_edge_id);
 }
 
+/**
+ * Remove an edge (u, v) from the waiting room, used in the case of edge deletions
+ * @param u
+ * @param v
+ * @return true if the edge was found and removed, false otherwise
+ */
 bool Tonic_FD::WaitingRoom::remove_edge(int u, int v) {
 
     unsigned long long edge_id = (long) edge_to_wr_id(u, v);
@@ -49,6 +64,13 @@ bool Tonic_FD::WaitingRoom::remove_edge(int u, int v) {
 }
 
 
+/**
+ * Constructor for the Tonic_FD class.
+ * @param random_seed
+ * @param k memory budget
+ * @param alpha
+ * @param beta
+ */
 Tonic_FD::Tonic_FD(int random_seed, long k, double alpha, double beta) : t_(0), k_(k), alpha_(alpha),
                                                                                        beta_(beta) {
 
@@ -70,21 +92,37 @@ Tonic_FD::Tonic_FD(int random_seed, long k, double alpha, double beta) : t_(0), 
 
 }
 
-
+/**
+ * Destructor for the Tonic_FD class
+ */
 Tonic_FD::~Tonic_FD() {
     delete waiting_room_;
     delete[] light_edges_sample_;
 }
 
+/**
+ * Set the edge oracle for the Tonic_FD class
+ * @param edge_oracle
+ */
 void Tonic_FD::set_edge_oracle(emhash5::HashMap<long, int> &edge_oracle) {
     edge_id_oracle_ = edge_oracle;
     edge_oracle_flag_ = true;
 }
 
+/**
+ * Set the node oracle for the Tonic_FD class
+ * @param node_oracle
+ */
 void Tonic_FD::set_node_oracle(emhash5::HashMap<int, int> &node_oracle) {
     node_oracle_ = node_oracle;
 }
 
+/**
+ * Return heaviness prediction from the node or edge oracle given the current edge (u, v)
+ * @param u
+ * @param v
+ * @return heaviness if the edge or both nodes are found in the predictor, -1 otherwise
+ */
 int Tonic_FD::get_heaviness(const int u, const int v) {
     if (edge_oracle_flag_) {
         auto id_it = edge_id_oracle_.find(edge_to_id(u, v));
@@ -106,18 +144,34 @@ int Tonic_FD::get_heaviness(const int u, const int v) {
     }
 }
 
+/**
+ * Generate a random double between 0 and 1
+ * @return random double
+ */
 inline double Tonic_FD::next_double() {
     return dis_(gen_);
 }
 
+/**
+ * Return the number of nodes in the subgraph
+ * @return number of nodes
+ */
 long Tonic_FD::get_num_nodes() const {
     return (long) subgraph_.size();
 }
 
+/**
+ * Return the number of edges in the subgraph
+ * @return number of edges
+ */
 long Tonic_FD::get_num_edges() const {
     return num_edges_;
 }
 
+/**
+ * Return the nodes in the subgraph
+ * @param nodes to fill
+ */
 void Tonic_FD::get_nodes(std::vector<int> &nodes) const {
     nodes.clear();
     for (const auto &it: subgraph_) {
@@ -125,6 +179,10 @@ void Tonic_FD::get_nodes(std::vector<int> &nodes) const {
     }
 }
 
+/**
+ * Return the local nodes in the subgraph
+ * @param nodes to fill
+ */
 void Tonic_FD::get_local_nodes(std::vector<int> &nodes) const {
     nodes.clear();
     for (const auto &it: local_triangles_cnt_) {
@@ -132,6 +190,12 @@ void Tonic_FD::get_local_nodes(std::vector<int> &nodes) const {
     }
 }
 
+/**
+ * Function that adds an edge (u, v) to the subgraph
+ * @param u
+ * @param v
+ * @param det true if the edge to be inserted is deterministic (heavy or WR), false otherwise (light, in SL)
+ */
 void Tonic_FD::add_edge(const int u, const int v, bool det) {
 
     subgraph_[u][v] = det;
@@ -140,10 +204,14 @@ void Tonic_FD::add_edge(const int u, const int v, bool det) {
 
 }
 
-
+/**
+ * Function that deletes an edge (u, v) from the subgraph, for edge deletions
+ * @param u
+ * @param v
+ * @return returns -1 if the edge is not in the subgraph, 0 if the deleted edge is not det (SL),
+ * 1 if the deleted edge is det (W or H). If present, remove directly the edge from the subgraph
+ */
 int Tonic_FD::edge_deletion(const int u, const int v) {
-    // -- returns -1 if the edge is not in the subgraph, 0 if the edge is not det (SL), 1 if the edge is det (W or H)
-    // -- if present, remove directly the edge from the subgraph
     auto u_it = subgraph_.find(u);
     if (u_it != subgraph_.end()) {
         if (u_it->second.find(v) != u_it->second.end()) {
@@ -178,6 +246,12 @@ int Tonic_FD::edge_deletion(const int u, const int v) {
     return -1;
 }
 
+/**
+ * Function that removes an edge (u, v) from the subgraph
+ * @param u
+ * @param v
+ * @return true if the edge was found and removed, false otherwise
+ */
 bool Tonic_FD::remove_edge(const int u, const int v) {
     auto u_it = subgraph_.find(u);
     if (u_it != subgraph_.end()) {
@@ -209,24 +283,44 @@ bool Tonic_FD::remove_edge(const int u, const int v) {
     return false;
 }
 
+/**
+ * Function that return the current timestamp in the stream
+ * @return current timestamp
+ */
 inline unsigned long long Tonic_FD::get_edges_processed() const {
     return t_;
 }
 
+/**
+ * Function that returns the global triangle count
+ * @return the global triangle count (0 if negatives)
+ */
 double Tonic_FD::get_global_triangles() const {
     // return maximum of 0 and the global triangle count
     return std::max(0.0, global_triangles_cnt_);
 }
 
+/**
+ * Function that returns the local triangle count for a node u
+ * @param u
+ * @return the local triangle count for node u (0 if negative)
+ */
 double Tonic_FD::get_local_triangles(const int u) const {
     auto u_it = local_triangles_cnt_.find(u);
     if (u_it != local_triangles_cnt_.end()) {
-        return u_it->second;
+        return std::max(0.0, u_it->second);
     } else {
         return 0.0;
     }
 }
 
+/**
+ * Function that counts the triangles closed by the current edge (src, dst). Increments the counters if sign is +,
+ * or decrements the counters if sign is -. The function is called before the edge is sampled.
+ * @param src
+ * @param dst
+ * @param sign
+ */
 void Tonic_FD::count_triangles(const int src, const int dst, const int sign) {
 
     emhash5::HashMap<int, bool> *u_neighs, *v_neighs;
@@ -304,6 +398,11 @@ void Tonic_FD::count_triangles(const int src, const int dst, const int sign) {
 
 }
 
+/**
+ * Function that samples an edge (u, v) from the stream in the correct sets W, H or SL.
+ * @param u
+ * @param v
+ */
 void Tonic_FD::sample_edge(const int u, const int v) {
 
     if (H_cur_ < H_size_) {
@@ -443,6 +542,15 @@ void Tonic_FD::sample_edge(const int u, const int v) {
     }
 }
 
+/**
+ * Function that processes an edge (src, dst) at time t with sign +1 or -1. First performs the count or deletions of
+ * triangles, then check if the edge is an insertion or deletions and samples or removes the edge accordingly.
+ * deletions
+ * @param src
+ * @param dst
+ * @param t
+ * @param sign
+ */
 void Tonic_FD::process_edge(const int src, const int dst, const int t, const int sign) {
 
     int u = src;

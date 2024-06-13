@@ -7,6 +7,11 @@
 #include <string>
 #include <chrono>
 
+/**
+ * Read stream and perform the Tonic algorithm for insertion only streams
+ * @param dataset_path
+ * @param algo the instantiated Tonic algorithm class
+ */
 void run_tonic_algo(std::string &dataset_path, Tonic &algo) {
 
     std::ifstream file(dataset_path);
@@ -41,6 +46,11 @@ void run_tonic_algo(std::string &dataset_path, Tonic &algo) {
 
 }
 
+/**
+ * Read stream and perform the Tonic FD algorithm for fully dynamic streams
+ * @param dataset_path
+ * @param algo the instantiated Tonic FD algorithm class
+ */
 void run_tonic_algo_FD(std::string &dataset_path, Tonic_FD &algo) {
 
     std::ifstream file(dataset_path);
@@ -82,6 +92,19 @@ void run_tonic_algo_FD(std::string &dataset_path, Tonic_FD &algo) {
 
 }
 
+/**
+ * Write results to a csv file
+ * @param name of the algorithm
+ * @param estimated_T estimates of global triangles
+ * @param time taken by the algorithm
+ * @param output_path output file where to write results
+ * @param edge_oracle_flag
+ * @param alpha
+ * @param beta
+ * @param memory_budget
+ * @param size_oracle size of the oracle in memory
+ * @param time_oracle time to read the oracle
+ */
 void write_results(std::string name, double estimated_T, double time, std::string& output_path, bool edge_oracle_flag,
                     double alpha, double beta, long memory_budget, int size_oracle,
                     double time_oracle) {
@@ -99,7 +122,11 @@ void write_results(std::string name, double estimated_T, double time, std::strin
 
 }
 
-// -- get the base name of the executable
+/**
+ * Get the base name of the executable
+ * @param s the string to split
+ * @return the name of the executable
+ */
 char *base_name(char *s)
 {
     char *start;

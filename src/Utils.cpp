@@ -4,6 +4,12 @@
 
 #include "../include/Utils.h"
 
+/**
+ * Runs the exact algorithm for counting triangles in a insertion-only, undirected and static graph streams
+ * @param dataset_filepath where the graph is stored
+ * @param output_path where to write outputs
+ * @return the number of triangles in the graph
+ */
 long Utils::run_exact_algorithm(std::string &dataset_filepath, std::string &output_path) {
 
     std::ifstream file(dataset_filepath);
@@ -75,6 +81,12 @@ long Utils::run_exact_algorithm(std::string &dataset_filepath, std::string &outp
     return total_T;
 }
 
+/**
+ * Runs the exact algorithm for counting triangles in a fully dynamic graph stream streams
+ * @param dataset_filepath where the graph is stored
+ * @param output_path where to write outputs
+ * @return the number of triangles in the graph
+ */
 long Utils::run_exact_algorithm_FD(std::string &dataset_filepath, std::string &output_path) {
 
     std::ifstream file(dataset_filepath);
@@ -203,7 +215,14 @@ long Utils::run_exact_algorithm_FD(std::string &dataset_filepath, std::string &o
 
 }
 
-
+/**
+ * Read node oracle
+ * @param oracle_filename path for the oracle file
+ * @param delimiter for rows of oracle file
+ * @param skip line to skip at the beginning of oracle file
+ * @param node_oracle the filled hashmap containing the node oracle
+ * @return true if the oracle file is read correctly, false otherwise
+ */
 bool Utils::read_node_oracle(std::string &oracle_filename, char delimiter, int skip,
                              emhash5::HashMap<int, int> &node_oracle) {
 
@@ -232,6 +251,14 @@ bool Utils::read_node_oracle(std::string &oracle_filename, char delimiter, int s
 
 }
 
+/**
+ * Read edge oracle
+ * @param oracle_filename path for the oracle file
+ * @param delimiter for rows of oracle file
+ * @param skip line to skip at the beginning of oracle file
+ * @param edge_id_oracle the filled hashmap containing the edge oracle
+ * @return true if the oracle file is read correctly, false otherwise
+ */
 bool Utils::read_edge_oracle(std::string &oracle_filename, char delimiter, int skip,
                              emhash5::HashMap<long, int> &edge_id_oracle) {
 
@@ -263,6 +290,15 @@ bool Utils::read_edge_oracle(std::string &oracle_filename, char delimiter, int s
 
 }
 
+/**
+ * Function that preprocesses a graph and saves it in the correct format, i.e., (u v t) for each row, separated
+ * by a space delimiter. Also, handles self-loops and multiple edges and sorts the edges by increasing time of arrival
+ * in the stream.
+ * @param dataset_filepath path for the graph dataset file
+ * @param delimiter for rows of graph dataset file
+ * @param skip line to skip at the beginning of graph dataset file
+ * @param output_path where to store the preprocess graph dataset
+ */
 void Utils::preprocess_data(const std::string &dataset_filepath, std::string &delimiter, int skip,
                             std::string &output_path) {
 
@@ -350,11 +386,18 @@ void Utils::preprocess_data(const std::string &dataset_filepath, std::string &de
 
 }
 
-// -- used for preprocess each snapshot of graph sequences: differs from the previous one because does not include
-// -- the final ordering of timestamps, which is done in later stages (also considering subsequent edge deletions)
+/**
+ * Function that preprocesses a graph snapshot from a graph sequence, used for creating FD streams.
+ * Differs from the above function beacause do not
+ * include the final ordering of timestamps, which is done in later stages (also considering subsequent edge deletions)
+ * @param dataset_filepath path for the graph dataset file
+ * @param delimiter for rows of graph dataset file
+ * @param skip line to skip at the beginning of graph dataset file
+ * @param output_path where to store the preprocess graph dataset
+ * @return the preprocessed edge stream and the number of edges and the current maximum timestamp
+ */
 std::pair<Utils::EdgeStream, long> Utils::preprocess_data_FD(const std::string &dataset_filepath,
-                                                             std::string &delimiter, int skip,
-                                                             std::string &output_path) {
+                                                             std::string &delimiter, int skip) {
 
     std::cout << "Preprocessing Dataset...\n";
     std::ifstream file(dataset_filepath);
@@ -423,6 +466,15 @@ std::pair<Utils::EdgeStream, long> Utils::preprocess_data_FD(const std::string &
 
 }
 
+/**
+ * Merges snapshot from a sequence of graphs, computing edge deletions and additions to derive the final fully dynamic
+ * stream
+ * @param folder containing the graph sequences filepaths
+ * @param n_snapshots the number of graphs to merge
+ * @param delimiter for rows of snapshots dataset file
+ * @param line_to_skip at the beginning of snapshot dataset file
+ * @param output_path where to write the final FD stream
+ */
 void Utils::merge_snapshots_FD(std::string &folder, int n_snapshots, std::string &delimiter, int line_to_skip,
                             std::string &output_path) {
 
@@ -453,8 +505,8 @@ void Utils::merge_snapshots_FD(std::string &folder, int n_snapshots, std::string
 
         if (idx_snap > n_snapshots) break;
 
-        std::string out_snap_path = file.substr(0, file.find_last_of('.')) + "_preprocessed.txt";
-        auto snap = Utils::preprocess_data_FD(file, delimiter, line_to_skip, out_snap_path);
+        // std::string out_snap_path = file.substr(0, file.find_last_of('.')) + "_preprocessed.txt";
+        auto snap = Utils::preprocess_data_FD(file, delimiter, line_to_skip);
         EdgeStream snap_stream = snap.first;
         long max_timestamp = snap.second;
 
@@ -539,6 +591,13 @@ void Utils::merge_snapshots_FD(std::string &folder, int n_snapshots, std::string
 
 }
 
+/**
+ * Function that builds OracleExact, given the graph filepath. Requires to solve the problem of counting exactly the
+ * number of triangles in a graph stream.
+ * @param filepath of the graph for which deriving OracleExact
+ * @param percentage_retain of entries ((u,v); O_H((u, v))) to store sorted by O_H
+ * @param output_path where to write OracleExact
+ */
 void Utils::build_edge_exact_oracle(std::string &filepath, double percentage_retain, std::string &output_path) {
 
     std::cout << "Building edge oracle...\n";
@@ -632,6 +691,15 @@ void Utils::build_edge_exact_oracle(std::string &filepath, double percentage_ret
     }
 }
 
+/**
+ * Function that builds Oracle-noWR, given the graph filepath. Requires to solve the problem of counting exactly the
+ * number of triangles in a graph stream
+ * @param filepath of the graph for which deriving Oracle-noWR
+ * @param percentage_retain of entries ((u,v); O_H((u, v))) to store sorted by O_H
+ * @param output_path where to write Oracle-noWR
+ * @param wr_size the dimension of the waiting room. Used to compute the triangles inside the waiting room to be
+ * subtracted to the true heaviness to derive Oracle-noWR
+ */
 void Utils::build_edge_exact_nowr_oracle(std::string &filepath, double percentage_retain, std::string &output_path,
                                          int wr_size) {
 
@@ -749,6 +817,13 @@ void Utils::build_edge_exact_nowr_oracle(std::string &filepath, double percentag
     }
 }
 
+/**
+ * Function that builds node based MinDegreePredictor, given the graph filepath. Requires a fast pass to the stream
+ * to compute node degrees.
+ * @param filepath of the graph for which deriving MinDegreePredictor
+ * @param percentage_retain of entries (u; deg(u)) to store sorted by deg(u)
+ * @param output_path where to write MinDegreePredictor
+ */
 void Utils::build_node_oracle(std::string &filepath, double percentage_retain, std::string &output_path) {
 
     std::cout << "Building node oracle...\n";
