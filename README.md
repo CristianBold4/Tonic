@@ -56,7 +56,7 @@ the counts (only for the noWR oracle).
 
 Here are the links to the datasets we used to perform the experiments. 
 
-### Global and Local Triangles Experiments:
+### Single Graphs:
 
 | Dataset                                                                             | Nodes | Edges | Triangles |
 |-------------------------------------------------------------------------------------| ------- | -------- | ------- |
@@ -69,7 +69,7 @@ Here are the links to the datasets we used to perform the experiments.
 | <a href=https://anlab-kaist.github.io/traces/WWW2010>Twitter-merged</a>             | 41M | 1.5B | 34.6B |
 
 
-### Snapshot Experiments:
+### Graph Sequences:
 This kind of datasets consists in a collection of consecutive graphs registered each in a given time of interval, 
 meaning that the topology betweeen each graph is only slightly varying in terms of nodes and edges (and, consequently triangles).
 
@@ -80,7 +80,9 @@ meaning that the topology betweeen each graph is only slightly varying in terms 
 | <a href=https://snap.stanford.edu/data/as-733.html>Autonomous systems AS-733</a>         | 733              | 733 Daily instances which span an interval of 785 days from November 8 1997 to January 2 2000, from the BGP logs                                                        | 6k        | 13k | 6k            |
 | <a href=https://anlab-kaist.github.io/traces/WWW2010>Twitter snapshots</a>               | 4                |  4 graphs of the Twitter following/followers network                                                                                                                                                                        | 29.9M     | 373M | 4.4B          |
 
+## Experiments and Results
 
+To reproduce experiments and results of the paper, please refer to the `scripts` folder.
 
 
 
